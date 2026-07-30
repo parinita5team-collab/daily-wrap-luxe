@@ -91,7 +91,7 @@ function CalendarPage() {
 
   const upcoming = useMemo(() => {
     const t = key(today.getFullYear(), today.getMonth(), today.getDate());
-    return shown.filter((e) => e.event_date >= e && t ? e.event_date >= t : false).slice(0, 6);
+    return shown.filter((e) => e.event_date >= t).slice(0, 6);
   }, [shown, today]);
 
   return (
