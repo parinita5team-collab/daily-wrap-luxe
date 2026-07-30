@@ -32,22 +32,28 @@ function isUuid(id: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 }
 
-export function useTasks(enabled = true) {
+export function useTasks(companyId: string | null) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   const refresh = useCallback(async () => {
+    if (!companyId) {
+      setTasks([]);
+      setHydrated(true);
+      return;
+    }
     const { data, error } = await supabase
       .from("tasks")
       .select(SELECT)
+      .eq("company_id", companyId)
       .order("created_at", { ascending: true });
     if (!error && data) setTasks((data as Row[]).map(toTask));
     setHydrated(true);
-  }, []);
+  }, [companyId]);
 
   useEffect(() => {
-    if (!enabled) return;
     void refresh();
+    if (!companyId) return;
     const channel = supabase
       .channel("tasks-changes")
       .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, () => {
@@ -57,10 +63,11 @@ export function useTasks(enabled = true) {
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [enabled, refresh]);
+  }, [companyId, refresh]);
 
   const saveTask = useCallback(
     async (task: Task) => {
+      if (!companyId) return;
       const payload = {
         team_member: task.teamMember,
         task: task.task,
@@ -69,6 +76,7 @@ export function useTasks(enabled = true) {
         timeline: task.timeline,
         date: task.date,
         status: task.status,
+        company_id: companyId,
       };
 
       if (task.id && isUuid(task.id) && tasks.some((t) => t.id === task.id)) {
@@ -85,7 +93,7 @@ export function useTasks(enabled = true) {
       }
       void refresh();
     },
-    [tasks, refresh],
+    [tasks, refresh, companyId],
   );
 
   const deleteTask = useCallback(

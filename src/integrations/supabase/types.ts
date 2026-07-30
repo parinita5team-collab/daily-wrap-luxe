@@ -14,6 +14,101 @@ export type Database = {
   }
   public: {
     Tables: {
+      calendar_events: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          end_time: string
+          event_date: string
+          event_type: string
+          id: string
+          location: string
+          notes: string
+          owner: string
+          requirements: string
+          start_time: string
+          status: string
+          title: string
+          updated_at: string
+          venue: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          end_time?: string
+          event_date: string
+          event_type?: string
+          id?: string
+          location?: string
+          notes?: string
+          owner?: string
+          requirements?: string
+          start_time?: string
+          status?: string
+          title: string
+          updated_at?: string
+          venue?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          end_time?: string
+          event_date?: string
+          event_type?: string
+          id?: string
+          location?: string
+          notes?: string
+          owner?: string
+          requirements?: string
+          start_time?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          venue?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companies: {
+        Row: {
+          accent: string
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          accent?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          accent?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -32,9 +127,66 @@ export type Database = {
         }
         Relationships: []
       }
+      stage_entries: {
+        Row: {
+          company_id: string
+          content_today: string
+          created_at: string
+          created_by: string | null
+          entry_date: string
+          id: string
+          metric_value: number | null
+          next_steps: string
+          notes: string
+          owner: string
+          platform: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          content_today?: string
+          created_at?: string
+          created_by?: string | null
+          entry_date?: string
+          id?: string
+          metric_value?: number | null
+          next_steps?: string
+          notes?: string
+          owner?: string
+          platform: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          content_today?: string
+          created_at?: string
+          created_by?: string | null
+          entry_date?: string
+          id?: string
+          metric_value?: number | null
+          next_steps?: string
+          notes?: string
+          owner?: string
+          platform?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stage_entries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           company: string
+          company_id: string | null
           created_at: string
           created_by: string | null
           date: string
@@ -48,6 +200,7 @@ export type Database = {
         }
         Insert: {
           company?: string
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
           date: string
@@ -61,6 +214,7 @@ export type Database = {
         }
         Update: {
           company?: string
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
           date?: string
@@ -72,7 +226,15 @@ export type Database = {
           timeline?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tasks_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
