@@ -1,11 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { Header } from "@/components/daily-wrap/Header";
 import { Toolbar } from "@/components/daily-wrap/Toolbar";
 import { StatsCard } from "@/components/daily-wrap/StatsCard";
 import { TeamColumn } from "@/components/daily-wrap/TeamColumn";
 import { TaskModal, type TaskDraft } from "@/components/daily-wrap/TaskModal";
 import { useTasks } from "@/lib/daily-wrap/storage";
+import { useAuth } from "@/hooks/useAuth";
 import { TEAM_MEMBERS, type Task } from "@/lib/daily-wrap/types";
 
 export const Route = createFileRoute("/")({
@@ -51,10 +52,16 @@ function shift(key: string, days: number) {
 }
 
 function Index() {
-  const { tasks, saveTask, deleteTask } = useTasks();
+  const { user, loading, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { tasks, saveTask, deleteTask } = useTasks(!!user);
   const [dateKey, setDateKey] = useState(() => toKey(new Date()));
   const [draft, setDraft] = useState<TaskDraft | null>(null);
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!loading && !user) void navigate({ to: "/auth", search: { next: "/" } });
+  }, [loading, user, navigate]);
 
   const dayTasks = useMemo(() => tasks.filter((t) => t.date === dateKey), [tasks, dateKey]);
 
@@ -105,6 +112,17 @@ function Index() {
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto w-full max-w-[1180px] px-5 pt-7 pb-[60px]">
+        <div className="mb-4 flex items-center justify-end gap-3">
+          <span className="font-mono text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
+            {user?.email ?? ""}
+          </span>
+          <button
+            onClick={() => void signOut()}
+            className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Sign out
+          </button>
+        </div>
         <Header
           onLogTask={() => setDraft(newDraft(TEAM_MEMBERS[0]))}
           onCopy={copyReport}
