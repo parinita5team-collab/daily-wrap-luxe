@@ -1,15 +1,18 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Building2, ChevronDown, Settings2 } from "lucide-react";
+import { Building2, ChevronDown, Search, Settings2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { CompanyProvider, accentForeground, useCompanies } from "@/lib/companies/context";
 import { CompanyManager } from "./CompanyManager";
+import { GlobalSearch } from "./GlobalSearch";
 import { cn } from "@/lib/utils";
 
 const TRACKERS = [
+  { to: "/overview", label: "Overview" },
   { to: "/", label: "Daily Wrap" },
   { to: "/run-of-show", label: "Run of Show" },
   { to: "/calendar", label: "Calendar" },
+  { to: "/timeline", label: "Timeline" },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -41,6 +44,18 @@ function Shell({
   const { companies, company, selectCompany } = useCompanies();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [manageOpen, setManageOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const accent = company?.accent ?? "#E8B84B";
 
@@ -71,7 +86,18 @@ function Shell({
             ))}
           </nav>
 
-          <div className="relative ml-auto">
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="ml-auto flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+          >
+            <Search className="size-3.5" />
+            <span className="hidden sm:inline">Search everything</span>
+            <span className="mono-label hidden rounded bg-surface-raised px-1.5 py-0.5 md:inline">
+              ⌘K
+            </span>
+          </button>
+
+          <div className="relative">
             <button
               onClick={() => setPickerOpen((v) => !v)}
               className="flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary/40"
@@ -146,6 +172,7 @@ function Shell({
       )}
 
       <CompanyManager open={manageOpen} onClose={() => setManageOpen(false)} />
+      <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
 }
