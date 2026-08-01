@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BrainWaveRouteImport } from './routes/brain-wave'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as OverviewRouteImport } from './routes/overview'
 import { Route as RunOfShowRouteImport } from './routes/run-of-show'
@@ -24,6 +25,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrainWaveRoute = BrainWaveRouteImport.update({
+  id: '/brain-wave',
+  path: '/brain-wave',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CalendarRoute = CalendarRouteImport.update({
@@ -50,6 +56,7 @@ const TimelineRoute = TimelineRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/brain-wave': typeof BrainWaveRoute
   '/calendar': typeof CalendarRoute
   '/overview': typeof OverviewRoute
   '/run-of-show': typeof RunOfShowRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/brain-wave': typeof BrainWaveRoute
   '/calendar': typeof CalendarRoute
   '/overview': typeof OverviewRoute
   '/run-of-show': typeof RunOfShowRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/brain-wave': typeof BrainWaveRoute
   '/calendar': typeof CalendarRoute
   '/overview': typeof OverviewRoute
   '/run-of-show': typeof RunOfShowRoute
@@ -75,13 +84,27 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth' | '/calendar' | '/overview' | '/run-of-show' | '/timeline'
+    | '/'
+    | '/auth'
+    | '/brain-wave'
+    | '/calendar'
+    | '/overview'
+    | '/run-of-show'
+    | '/timeline'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/calendar' | '/overview' | '/run-of-show' | '/timeline'
+  to:
+    | '/'
+    | '/auth'
+    | '/brain-wave'
+    | '/calendar'
+    | '/overview'
+    | '/run-of-show'
+    | '/timeline'
   id:
     | '__root__'
     | '/'
     | '/auth'
+    | '/brain-wave'
     | '/calendar'
     | '/overview'
     | '/run-of-show'
@@ -91,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  BrainWaveRoute: typeof BrainWaveRoute
   CalendarRoute: typeof CalendarRoute
   OverviewRoute: typeof OverviewRoute
   RunOfShowRoute: typeof RunOfShowRoute
@@ -111,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brain-wave': {
+      id: '/brain-wave'
+      path: '/brain-wave'
+      fullPath: '/brain-wave'
+      preLoaderRoute: typeof BrainWaveRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/calendar': {
@@ -147,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  BrainWaveRoute: BrainWaveRoute,
   CalendarRoute: CalendarRoute,
   OverviewRoute: OverviewRoute,
   RunOfShowRoute: RunOfShowRoute,

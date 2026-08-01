@@ -109,6 +109,129 @@ export type Database = {
         }
         Relationships: []
       }
+      company_members: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          invited_by: string | null
+          role: Database["public"]["Enums"]["company_role"]
+          updated_at: string
+          user_email: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["company_role"]
+          updated_at?: string
+          user_email: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["company_role"]
+          updated_at?: string
+          user_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_members_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      idea_votes: {
+        Row: {
+          created_at: string
+          id: string
+          idea_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          idea_id: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          idea_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "idea_votes_idea_id_fkey"
+            columns: ["idea_id"]
+            isOneToOne: false
+            referencedRelation: "ideas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ideas: {
+        Row: {
+          author_email: string
+          author_name: string
+          category: string
+          company_id: string
+          created_at: string
+          created_by: string | null
+          description: string
+          estimated_saving: string
+          id: string
+          impact: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_email?: string
+          author_name?: string
+          category?: string
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          estimated_saving?: string
+          id?: string
+          impact?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_email?: string
+          author_name?: string
+          category?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          estimated_saving?: string
+          id?: string
+          impact?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ideas_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -126,6 +249,100 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      reminder_settings: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          enabled: boolean
+          id: string
+          timeline_time: string
+          updated_at: string
+          user_id: string
+          weekdays_only: boolean
+          wrap_time: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          timeline_time?: string
+          updated_at?: string
+          user_id?: string
+          weekdays_only?: boolean
+          wrap_time?: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          timeline_time?: string
+          updated_at?: string
+          user_id?: string
+          weekdays_only?: boolean
+          wrap_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminder_settings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_searches: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          date_from: string
+          date_to: string
+          id: string
+          name: string
+          query: string
+          statuses: string[]
+          trackers: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          date_from?: string
+          date_to?: string
+          id?: string
+          name: string
+          query?: string
+          statuses?: string[]
+          trackers?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          date_from?: string
+          date_to?: string
+          id?: string
+          name?: string
+          query?: string
+          statuses?: string[]
+          trackers?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_searches_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stage_entries: {
         Row: {
@@ -241,10 +458,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      can_edit_company: { Args: { _company_id: string }; Returns: boolean }
+      company_has_members: { Args: { _company_id: string }; Returns: boolean }
+      company_role_of: {
+        Args: { _company_id: string }
+        Returns: Database["public"]["Enums"]["company_role"]
+      }
+      is_company_admin: { Args: { _company_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      company_role: "admin" | "editor" | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -371,6 +594,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      company_role: ["admin", "editor", "viewer"],
+    },
   },
 } as const
