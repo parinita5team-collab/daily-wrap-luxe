@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion } from "motion/react";
-import { CalendarDays, Check, Copy, Download, FileText, Printer } from "lucide-react";
+import { CalendarDays, Check, Copy, Download, FileText, Printer, Table2 } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useCompanies } from "@/lib/companies/context";
 import { dateKey, prettyDate, shiftKey, useCompanyData } from "@/lib/reports/data";
 import { buildTextReport, downloadText, printReport } from "@/lib/reports/report";
+import { combinedCsv, downloadCsv, eventsCsv, stagesCsv, tasksCsv } from "@/lib/reports/csv";
 import { PLATFORMS, STAGE_STATUS_LABEL, type StageStatus } from "@/lib/run-of-show/data";
 import { typeInfo } from "@/lib/calendar/data";
 import { cn } from "@/lib/utils";
@@ -87,6 +88,14 @@ function Overview() {
   };
 
   const filename = `${(company?.name ?? "company").toLowerCase().replace(/\s+/g, "-")}-report-${from}_${to}.txt`;
+  const slug = (company?.name ?? "company").toLowerCase().replace(/\s+/g, "-");
+  const csvName = (kind: string) => `${slug}-${kind}-${from}_${to}.csv`;
+  const CSV_EXPORTS = [
+    { label: "Combined CSV", build: () => combinedCsv(company?.name ?? "Company", data), kind: "combined" },
+    { label: "Daily Wrap", build: () => tasksCsv(data), kind: "daily-wrap" },
+    { label: "Run of Show", build: () => stagesCsv(data), kind: "run-of-show" },
+    { label: "Calendar", build: () => eventsCsv(data), kind: "calendar" },
+  ];
 
   const latestByPlatform = useMemo(() => {
     const map = new Map<string, (typeof data.entries)[number]>();
@@ -146,6 +155,20 @@ function Overview() {
             </button>
           </div>
         </div>
+
+        <section className="mt-4 flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-3">
+          <Table2 className="ml-1 size-4 text-primary" />
+          <span className="mono-label text-muted-foreground">CSV export</span>
+          {CSV_EXPORTS.map((x) => (
+            <button
+              key={x.kind}
+              onClick={() => downloadCsv(csvName(x.kind), x.build())}
+              className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+            >
+              <Download className="size-3" /> {x.label}
+            </button>
+          ))}
+        </section>
 
         <section className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-3">
           <CalendarDays className="ml-1 size-4 text-primary" />
