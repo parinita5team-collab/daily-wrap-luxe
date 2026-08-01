@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
-import { CalendarClock, CheckSquare, Radio, Search, X } from "lucide-react";
+import { Bookmark, CalendarClock, CheckSquare, Radio, Search, SlidersHorizontal, Trash2, X } from "lucide-react";
 import { useCompanies } from "@/lib/companies/context";
 import { prettyDate, useCompanyData } from "@/lib/reports/data";
 import { PLATFORMS, STAGE_STATUS_LABEL, type StageStatus } from "@/lib/run-of-show/data";
 import { typeInfo } from "@/lib/calendar/data";
+import { useSavedSearches } from "@/lib/search/saved";
 import { cn } from "@/lib/utils";
 
 type Kind = "task" | "stage" | "event";
@@ -16,6 +17,7 @@ interface Hit {
   title: string;
   detail: string;
   meta: string;
+  status: string;
   haystack: string;
   to: string;
   color?: string;
@@ -32,8 +34,19 @@ const ICON = { task: CheckSquare, stage: Radio, event: CalendarClock } as const;
 export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { company } = useCompanies();
   const navigate = useNavigate();
-  const { data, loading } = useCompanyData(open ? (company?.id ?? null) : null);
   const [q, setQ] = useState("");
+  const [trackers, setTrackers] = useState<Kind[]>([]);
+  const [statuses, setStatuses] = useState<string[]>([]);
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+  const [saveName, setSaveName] = useState("");
+  const { data, loading } = useCompanyData(
+    open ? (company?.id ?? null) : null,
+    from || undefined,
+    to || undefined,
+  );
+  const { searches, save, remove } = useSavedSearches(open ? (company?.id ?? null) : null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -51,7 +64,7 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  const hits = useMemo<Hit[]>(() => {
+  const all = useMemo<Hit[]>(() => {
     const out: Hit[] = [];
     for (const t of data.tasks)
       out.push({
@@ -60,6 +73,7 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
         title: t.task || "Untitled task",
         detail: [t.project, t.timeline, t.company].filter(Boolean).join(" · "),
         meta: `${t.team_member} · ${t.status} · ${prettyDate(t.date)}`,
+        status: t.status,
         haystack: [t.task, t.project, t.company, t.timeline, t.team_member, t.status, t.date]
           .join(" ")
           .toLowerCase(),
@@ -68,12 +82,14 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
 
     for (const e of data.entries) {
       const p = PLATFORMS.find((x) => x.id === e.platform);
+      const label = STAGE_STATUS_LABEL[e.status as StageStatus] ?? e.status;
       out.push({
         id: `s-${e.id}`,
         kind: "stage",
         title: `${p?.name ?? e.platform} check-in`,
         detail: e.content_today || e.next_steps || e.notes || "",
-        meta: `${STAGE_STATUS_LABEL[e.status as StageStatus] ?? e.status} · ${prettyDate(e.entry_date)}${e.owner ? ` · ${e.owner}` : ""}`,
+        meta: `${label} · ${prettyDate(e.entry_date)}${e.owner ? ` · ${e.owner}` : ""}`,
+        status: label,
         haystack: [p?.name, e.platform, e.content_today, e.notes, e.next_steps, e.owner, e.entry_date]
           .join(" ")
           .toLowerCase(),
@@ -88,6 +104,7 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
         title: e.title || "Untitled event",
         detail: [e.venue, e.location, e.requirements].filter(Boolean).join(" · "),
         meta: `${typeInfo(e.event_type).label} · ${e.status} · ${prettyDate(e.event_date)}`,
+        status: e.status,
         haystack: [
           e.title,
           e.venue,
@@ -105,11 +122,28 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
         color: typeInfo(e.event_type).color,
       });
 
+    return out;
+  }, [data]);
+
+  const statusOptions = useMemo(
+    () => [...new Set(all.map((h) => h.status).filter(Boolean))].sort(),
+    [all],
+  );
+
+  const hits = useMemo<Hit[]>(() => {
+    let out = all;
+    if (trackers.length) out = out.filter((h) => trackers.includes(h.kind));
+    if (statuses.length) out = out.filter((h) => statuses.includes(h.status));
     const term = q.trim().toLowerCase();
-    if (!term) return out.slice(0, 8);
+    if (!term) return out.slice(0, trackers.length || statuses.length || from || to ? 40 : 8);
     const words = term.split(/\s+/);
-    return out.filter((h) => words.every((w) => h.haystack.includes(w))).slice(0, 40);
-  }, [data, q]);
+    return out.filter((h) => words.every((w) => h.haystack.includes(w))).slice(0, 60);
+  }, [all, from, q, statuses, to, trackers]);
+
+  const toggle = <T,>(list: T[], value: T, set: (v: T[]) => void) =>
+    set(list.includes(value) ? list.filter((x) => x !== value) : [...list, value]);
+
+  const activeFilters = trackers.length + statuses.length + (from ? 1 : 0) + (to ? 1 : 0);
 
   const grouped = useMemo(() => {
     const order: Kind[] = ["task", "stage", "event"];
