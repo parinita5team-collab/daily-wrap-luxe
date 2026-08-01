@@ -183,6 +183,154 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
               </button>
             </div>
 
+            <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
+              <button
+                onClick={() => setShowFilters((v) => !v)}
+                className={cn(
+                  "mono-label flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 transition-colors",
+                  activeFilters
+                    ? "border-primary/60 text-primary"
+                    : "border-border text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <SlidersHorizontal className="size-3" /> Filters
+                {activeFilters ? ` · ${activeFilters}` : ""}
+              </button>
+              {searches.map((s) => (
+                <span
+                  key={s.id}
+                  className="mono-label flex items-center gap-1.5 rounded-full border border-border bg-surface-raised pl-2.5 text-muted-foreground"
+                >
+                  <button
+                    onClick={() => {
+                      setQ(s.query);
+                      setTrackers(s.trackers as Kind[]);
+                      setStatuses(s.statuses);
+                      setFrom(s.date_from);
+                      setTo(s.date_to);
+                    }}
+                    className="py-1.5 hover:text-foreground"
+                  >
+                    {s.name}
+                  </button>
+                  <button
+                    onClick={() => void remove(s.id)}
+                    aria-label={`Delete saved search ${s.name}`}
+                    className="pr-2 hover:text-danger"
+                  >
+                    <Trash2 className="size-3" />
+                  </button>
+                </span>
+              ))}
+              {activeFilters || q.trim() ? (
+                <button
+                  onClick={() => {
+                    setQ("");
+                    setTrackers([]);
+                    setStatuses([]);
+                    setFrom("");
+                    setTo("");
+                  }}
+                  className="mono-label ml-auto text-muted-foreground hover:text-foreground"
+                >
+                  Reset
+                </button>
+              ) : null}
+            </div>
+
+            {showFilters ? (
+              <div className="space-y-3 border-b border-border bg-surface-raised/40 px-4 py-3">
+                <div>
+                  <p className="mono-label mb-1.5 text-muted-foreground">Tracker</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(["task", "stage", "event"] as Kind[]).map((k) => (
+                      <button
+                        key={k}
+                        onClick={() => toggle(trackers, k, setTrackers)}
+                        className={cn(
+                          "mono-label rounded-full border px-2.5 py-1.5 transition-colors",
+                          trackers.includes(k)
+                            ? "border-primary/60 bg-card text-primary"
+                            : "border-border text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        {LABEL[k]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {statusOptions.length ? (
+                  <div>
+                    <p className="mono-label mb-1.5 text-muted-foreground">Status</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {statusOptions.map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => toggle(statuses, s, setStatuses)}
+                          className={cn(
+                            "mono-label rounded-full border px-2.5 py-1.5 transition-colors",
+                            statuses.includes(s)
+                              ? "border-primary/60 bg-card text-primary"
+                              : "border-border text-muted-foreground hover:text-foreground",
+                          )}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="flex flex-wrap items-end gap-2">
+                  <label className="flex-1">
+                    <span className="mono-label text-muted-foreground">From</span>
+                    <input
+                      type="date"
+                      value={from}
+                      onChange={(e) => setFrom(e.target.value)}
+                      className="mt-1 w-full rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-primary/60"
+                    />
+                  </label>
+                  <label className="flex-1">
+                    <span className="mono-label text-muted-foreground">To</span>
+                    <input
+                      type="date"
+                      value={to}
+                      onChange={(e) => setTo(e.target.value)}
+                      className="mt-1 w-full rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-primary/60"
+                    />
+                  </label>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
+                  <input
+                    value={saveName}
+                    onChange={(e) => setSaveName(e.target.value)}
+                    placeholder="Name this search"
+                    className="flex-1 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-primary/60"
+                  />
+                  <button
+                    onClick={async () => {
+                      if (!saveName.trim()) return;
+                      await save({
+                        name: saveName.trim(),
+                        query: q,
+                        trackers,
+                        statuses,
+                        date_from: from,
+                        date_to: to,
+                      });
+                      setSaveName("");
+                    }}
+                    className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground"
+                  >
+                    <Bookmark className="size-3" /> Save search
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
             <div className="max-h-[55vh] overflow-auto p-2">
               {loading ? (
                 <p className="px-3 py-6 text-center text-sm text-muted-foreground">Loading…</p>
