@@ -1,9 +1,11 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Building2, ChevronDown, Search, Settings2 } from "lucide-react";
+import { BellRing, Building2, ChevronDown, Search, Settings2, Users } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { CompanyProvider, accentForeground, useCompanies } from "@/lib/companies/context";
 import { CompanyManager } from "./CompanyManager";
+import { MembersManager } from "./MembersManager";
+import { ReminderCenter } from "./ReminderCenter";
 import { GlobalSearch } from "./GlobalSearch";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +15,7 @@ const TRACKERS = [
   { to: "/run-of-show", label: "Run of Show" },
   { to: "/calendar", label: "Calendar" },
   { to: "/timeline", label: "Timeline" },
+  { to: "/brain-wave", label: "Brain Wave" },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -45,6 +48,8 @@ function Shell({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [manageOpen, setManageOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [membersOpen, setMembersOpen] = useState(false);
+  const [remindersOpen, setRemindersOpen] = useState(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -97,6 +102,14 @@ function Shell({
             </span>
           </button>
 
+          <button
+            onClick={() => setRemindersOpen(true)}
+            aria-label="Reminder settings"
+            className="grid size-9 place-items-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+          >
+            <BellRing className="size-4" />
+          </button>
+
           <div className="relative">
             <button
               onClick={() => setPickerOpen((v) => !v)}
@@ -138,6 +151,15 @@ function Shell({
                   >
                     <Settings2 className="size-3.5" /> Manage companies
                   </button>
+                  <button
+                    onClick={() => {
+                      setMembersOpen(true);
+                      setPickerOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-primary"
+                  >
+                    <Users className="size-3.5" /> Roles &amp; access
+                  </button>
                 </div>
               </>
             ) : null}
@@ -172,7 +194,9 @@ function Shell({
       )}
 
       <CompanyManager open={manageOpen} onClose={() => setManageOpen(false)} />
+      <MembersManager open={membersOpen} onClose={() => setMembersOpen(false)} />
       <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <ReminderCenter settingsOpen={remindersOpen} onCloseSettings={() => setRemindersOpen(false)} />
     </div>
   );
 }
