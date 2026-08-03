@@ -154,6 +154,7 @@ function RunOfShow() {
             open={open === p.id}
             onToggle={() => setOpen(open === p.id ? null : p.id)}
             onSave={logUpdate}
+            canEdit={canEdit}
           />
         ))}
       </section>
@@ -176,6 +177,7 @@ function StageCard({
   open,
   onToggle,
   onSave,
+  canEdit,
 }: {
   platform: (typeof PLATFORMS)[number];
   date: string;
@@ -193,6 +195,7 @@ function StageCard({
     next_steps: string;
     owner: string;
   }) => Promise<void>;
+  canEdit: boolean;
 }) {
   const [form, setForm] = useState(entry);
   const [dirty, setDirty] = useState(false);
@@ -260,12 +263,18 @@ function StageCard({
 
       {open ? (
         <div className="mt-4 space-y-3 border-t border-border pt-4">
+          {!canEdit ? (
+            <p className="mono-label text-muted-foreground">
+              View only — ask an admin for edit access.
+            </p>
+          ) : null}
           <div className="flex gap-2">
             {(["green", "amber", "red"] as StageStatus[]).map((s) => (
               <button
                 key={s}
+                disabled={!canEdit}
                 onClick={() => set("status", s)}
-                className="mono-label flex-1 rounded-lg border border-border py-2 transition-colors"
+                className="mono-label flex-1 rounded-lg border border-border py-2 transition-colors disabled:opacity-50"
                 style={
                   view.status === s
                     ? { background: STAGE_STATUS_COLOR[s], color: "#14140f" }
@@ -280,12 +289,14 @@ function StageCard({
             <input
               type="number"
               className={field}
+              disabled={!canEdit}
               placeholder={platform.metricLabel}
               value={view.metric_value ?? ""}
               onChange={(e) => set("metric_value", e.target.value === "" ? null : +e.target.value)}
             />
             <input
               className={field}
+              disabled={!canEdit}
               placeholder="Update by (initials)"
               value={view.owner}
               onChange={(e) => set("owner", e.target.value)}
@@ -293,6 +304,7 @@ function StageCard({
           </div>
           <textarea
             className={field}
+            disabled={!canEdit}
             rows={2}
             placeholder={platform.contentLabel}
             value={view.content_today}
@@ -300,6 +312,7 @@ function StageCard({
           />
           <textarea
             className={field}
+            disabled={!canEdit}
             rows={2}
             placeholder="Blockers / notes for the boss"
             value={view.notes}
@@ -307,11 +320,13 @@ function StageCard({
           />
           <textarea
             className={field}
+            disabled={!canEdit}
             rows={2}
             placeholder="Next steps"
             value={view.next_steps}
             onChange={(e) => set("next_steps", e.target.value)}
           />
+          {canEdit ? (
           <button
             onClick={() => {
               void onSave({
@@ -330,6 +345,7 @@ function StageCard({
           >
             Log today's update
           </button>
+          ) : null}
 
           <div className="pt-2">
             <div className="mono-label text-muted-foreground">Recent cues</div>
