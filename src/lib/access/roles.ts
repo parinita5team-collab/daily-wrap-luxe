@@ -130,3 +130,10 @@ export function useCompanyMembers(companyId: string | null) {
     refresh,
   };
 }
+
+/** Edit rights for the currently selected company. */
+export function useCanEdit() {
+  const { company } = useCompanies();
+  const { canEdit, isAdmin, myRole, isAppAdmin } = useCompanyMembers(company?.id ?? null);
+  return { canEdit, isAdmin, myRole, isAppAdmin };
+}
