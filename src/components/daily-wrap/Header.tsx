@@ -7,7 +7,7 @@ export function Header({
   onCopy,
   copied,
 }: {
-  onLogTask: () => void;
+  onLogTask?: () => void;
   onCopy: () => void;
   copied: boolean;
 }) {
@@ -34,13 +34,15 @@ export function Header({
           </p>
         </div>
         <div className="flex flex-wrap gap-2.5 lg:justify-end">
-          <button
-            type="button"
-            onClick={onLogTask}
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110 active:translate-y-0"
-          >
-            <Plus className="size-4" /> Log a Task
-          </button>
+          {onLogTask ? (
+            <button
+              type="button"
+              onClick={onLogTask}
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110 active:translate-y-0"
+            >
+              <Plus className="size-4" /> Log a Task
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={onCopy}
