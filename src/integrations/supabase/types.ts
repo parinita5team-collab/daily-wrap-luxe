@@ -474,7 +474,6 @@ export type Database = {
     }
     Functions: {
       can_edit_company: { Args: { _company_id: string }; Returns: boolean }
-      company_has_members: { Args: { _company_id: string }; Returns: boolean }
       company_role_of: {
         Args: { _company_id: string }
         Returns: Database["public"]["Enums"]["company_role"]
