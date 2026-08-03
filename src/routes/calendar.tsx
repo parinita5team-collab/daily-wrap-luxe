@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ChevronLeft, ChevronRight, Plus, Trash2, X } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useCompanies } from "@/lib/companies/context";
+import { useCanEdit } from "@/lib/access/roles";
 import {
   EVENT_STATUSES,
   EVENT_TYPES,
