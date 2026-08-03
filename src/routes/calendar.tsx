@@ -185,7 +185,7 @@ function CalendarPage() {
               <button
                 key={i}
                 disabled={!d}
-                onClick={() => d && setDraft(emptyDraft(dk))}
+                onClick={() => d && canEdit && setDraft(emptyDraft(dk))}
                 className={cn(
                   "min-h-[104px] border-r border-b border-border p-2 text-left align-top transition-colors last:border-r-0",
                   d ? "hover:bg-surface-raised" : "bg-background/40",
@@ -207,7 +207,7 @@ function CalendarPage() {
                           key={e.id}
                           onClick={(ev) => {
                             ev.stopPropagation();
-                            setDraft(e);
+                            if (canEdit) setDraft(e);
                           }}
                           className="truncate rounded-md px-1.5 py-1 text-[11px] text-foreground"
                           style={{
@@ -242,7 +242,7 @@ function CalendarPage() {
             upcoming.map((e) => (
               <button
                 key={e.id}
-                onClick={() => setDraft(e)}
+                onClick={() => canEdit && setDraft(e)}
                 className="rounded-[14px] border border-border bg-card p-4 text-left shadow-card transition-colors hover:border-primary/30"
               >
                 <div className="flex items-center gap-2">
