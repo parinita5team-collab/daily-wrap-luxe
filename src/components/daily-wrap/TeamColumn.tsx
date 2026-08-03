@@ -12,8 +12,8 @@ export function TeamColumn({
 }: {
   member: string;
   tasks: Task[];
-  onAdd: () => void;
-  onSelect: (task: Task) => void;
+  onAdd?: () => void;
+  onSelect?: (task: Task) => void;
 }) {
   const completed = tasks.filter((t) => t.status === "Completed").length;
   const pct = tasks.length ? Math.round((completed / tasks.length) * 100) : 0;
@@ -35,19 +35,21 @@ export function TeamColumn({
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={onAdd}
-          className="mono-label inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-surface-raised px-2.5 py-2 text-muted-foreground transition-all duration-200 hover:border-primary/40 hover:text-primary"
-        >
-          <Plus className="size-3.5" /> Add
-        </button>
+        {onAdd ? (
+          <button
+            type="button"
+            onClick={onAdd}
+            className="mono-label inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-surface-raised px-2.5 py-2 text-muted-foreground transition-all duration-200 hover:border-primary/40 hover:text-primary"
+          >
+            <Plus className="size-3.5" /> Add
+          </button>
+        ) : null}
       </header>
 
       <div className="mt-4 flex flex-1 flex-col gap-2.5">
         <AnimatePresence initial={false}>
           {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} onClick={() => onSelect(task)} />
+            <TaskCard key={task.id} task={task} onClick={() => onSelect?.(task)} />
           ))}
         </AnimatePresence>
         {tasks.length === 0 ? (
