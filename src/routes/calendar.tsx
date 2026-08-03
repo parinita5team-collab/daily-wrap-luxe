@@ -63,6 +63,7 @@ function emptyDraft(date: string): Draft {
 
 function CalendarPage() {
   const { company } = useCompanies();
+  const { canEdit } = useCanEdit();
   const { events, saveEvent, deleteEvent } = useCalendarEvents(company?.id ?? null);
   const today = new Date();
   const [cursor, setCursor] = useState({ y: today.getFullYear(), m: today.getMonth() });
@@ -111,14 +112,16 @@ function CalendarPage() {
               Site visits, shoots, events, meetings and deadlines in one month-at-a-glance view.
             </p>
           </div>
-          <button
-            onClick={() =>
-              setDraft(emptyDraft(key(today.getFullYear(), today.getMonth(), today.getDate())))
-            }
-            className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-all hover:brightness-110"
-          >
-            <Plus className="size-4" /> Add event
-          </button>
+          {canEdit ? (
+            <button
+              onClick={() =>
+                setDraft(emptyDraft(key(today.getFullYear(), today.getMonth(), today.getDate())))
+              }
+              className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-all hover:brightness-110"
+            >
+              <Plus className="size-4" /> Add event
+            </button>
+          ) : null}
         </div>
       </header>
 
