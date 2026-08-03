@@ -14,6 +14,21 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_admins: {
+        Row: {
+          created_at: string
+          email: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+        }
+        Relationships: []
+      }
       calendar_events: {
         Row: {
           company_id: string
@@ -459,11 +474,11 @@ export type Database = {
     }
     Functions: {
       can_edit_company: { Args: { _company_id: string }; Returns: boolean }
-      company_has_members: { Args: { _company_id: string }; Returns: boolean }
       company_role_of: {
         Args: { _company_id: string }
         Returns: Database["public"]["Enums"]["company_role"]
       }
+      is_app_admin: { Args: never; Returns: boolean }
       is_company_admin: { Args: { _company_id: string }; Returns: boolean }
     }
     Enums: {

@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ChevronLeft, ChevronRight, Plus, Trash2, X } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useCompanies } from "@/lib/companies/context";
+import { useCanEdit } from "@/lib/access/roles";
 import {
   EVENT_STATUSES,
   EVENT_TYPES,
@@ -63,6 +64,7 @@ function emptyDraft(date: string): Draft {
 
 function CalendarPage() {
   const { company } = useCompanies();
+  const { canEdit } = useCanEdit();
   const { events, saveEvent, deleteEvent } = useCalendarEvents(company?.id ?? null);
   const today = new Date();
   const [cursor, setCursor] = useState({ y: today.getFullYear(), m: today.getMonth() });
@@ -111,14 +113,16 @@ function CalendarPage() {
               Site visits, shoots, events, meetings and deadlines in one month-at-a-glance view.
             </p>
           </div>
-          <button
-            onClick={() =>
-              setDraft(emptyDraft(key(today.getFullYear(), today.getMonth(), today.getDate())))
-            }
-            className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-all hover:brightness-110"
-          >
-            <Plus className="size-4" /> Add event
-          </button>
+          {canEdit ? (
+            <button
+              onClick={() =>
+                setDraft(emptyDraft(key(today.getFullYear(), today.getMonth(), today.getDate())))
+              }
+              className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-all hover:brightness-110"
+            >
+              <Plus className="size-4" /> Add event
+            </button>
+          ) : null}
         </div>
       </header>
 
@@ -181,7 +185,7 @@ function CalendarPage() {
               <button
                 key={i}
                 disabled={!d}
-                onClick={() => d && setDraft(emptyDraft(dk))}
+                onClick={() => d && canEdit && setDraft(emptyDraft(dk))}
                 className={cn(
                   "min-h-[104px] border-r border-b border-border p-2 text-left align-top transition-colors last:border-r-0",
                   d ? "hover:bg-surface-raised" : "bg-background/40",
@@ -203,7 +207,7 @@ function CalendarPage() {
                           key={e.id}
                           onClick={(ev) => {
                             ev.stopPropagation();
-                            setDraft(e);
+                            if (canEdit) setDraft(e);
                           }}
                           className="truncate rounded-md px-1.5 py-1 text-[11px] text-foreground"
                           style={{
@@ -238,7 +242,7 @@ function CalendarPage() {
             upcoming.map((e) => (
               <button
                 key={e.id}
-                onClick={() => setDraft(e)}
+                onClick={() => canEdit && setDraft(e)}
                 className="rounded-[14px] border border-border bg-card p-4 text-left shadow-card transition-colors hover:border-primary/30"
               >
                 <div className="flex items-center gap-2">

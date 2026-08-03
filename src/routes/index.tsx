@@ -8,6 +8,7 @@ import { TaskModal, type TaskDraft } from "@/components/daily-wrap/TaskModal";
 import { useTasks } from "@/lib/daily-wrap/storage";
 import { AppShell } from "@/components/shell/AppShell";
 import { useCompanies } from "@/lib/companies/context";
+import { useCanEdit } from "@/lib/access/roles";
 import { TEAM_MEMBERS, type Task } from "@/lib/daily-wrap/types";
 
 export const Route = createFileRoute("/")({
@@ -58,6 +59,7 @@ function shift(key: string, days: number) {
 
 function Index() {
   const { company } = useCompanies();
+  const { canEdit } = useCanEdit();
   const { tasks, saveTask, deleteTask } = useTasks(company?.id ?? null);
   const [dateKey, setDateKey] = useState(() => toKey(new Date()));
   const [draft, setDraft] = useState<TaskDraft | null>(null);
@@ -113,7 +115,7 @@ function Index() {
     <main className="bg-background">
       <div className="mx-auto w-full max-w-[1180px] px-5 pt-7 pb-[60px]">
         <Header
-          onLogTask={() => setDraft(newDraft(TEAM_MEMBERS[0]))}
+          onLogTask={canEdit ? () => setDraft(newDraft(TEAM_MEMBERS[0])) : undefined}
           onCopy={copyReport}
           copied={copied}
         />
@@ -140,8 +142,8 @@ function Index() {
               key={member}
               member={member}
               tasks={dayTasks.filter((t) => t.teamMember === member)}
-              onAdd={() => setDraft(newDraft(member))}
-              onSelect={(task) => setDraft(task)}
+              onAdd={canEdit ? () => setDraft(newDraft(member)) : undefined}
+              onSelect={canEdit ? (task) => setDraft(task) : undefined}
             />
           ))}
         </section>

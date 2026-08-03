@@ -3,6 +3,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { BellRing, Building2, ChevronDown, Search, Settings2, Users } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { CompanyProvider, accentForeground, useCompanies } from "@/lib/companies/context";
+import { useCanEdit } from "@/lib/access/roles";
 import { CompanyManager } from "./CompanyManager";
 import { MembersManager } from "./MembersManager";
 import { ReminderCenter } from "./ReminderCenter";
@@ -45,6 +46,7 @@ function Shell({
   children: ReactNode;
 }) {
   const { companies, company, selectCompany } = useCompanies();
+  const { isAdmin, canEdit } = useCanEdit();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [manageOpen, setManageOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -142,15 +144,17 @@ function Shell({
                   {companies.length === 0 ? (
                     <p className="px-3 py-2 text-sm text-muted-foreground">No companies yet.</p>
                   ) : null}
-                  <button
-                    onClick={() => {
-                      setManageOpen(true);
-                      setPickerOpen(false);
-                    }}
-                    className="mt-1 flex w-full items-center gap-2 rounded-lg border-t border-border px-3 py-2 text-left text-sm text-primary"
-                  >
-                    <Settings2 className="size-3.5" /> Manage companies
-                  </button>
+                  {isAdmin ? (
+                    <button
+                      onClick={() => {
+                        setManageOpen(true);
+                        setPickerOpen(false);
+                      }}
+                      className="mt-1 flex w-full items-center gap-2 rounded-lg border-t border-border px-3 py-2 text-left text-sm text-primary"
+                    >
+                      <Settings2 className="size-3.5" /> Manage companies
+                    </button>
+                  ) : null}
                   <button
                     onClick={() => {
                       setMembersOpen(true);
@@ -166,6 +170,12 @@ function Shell({
           </div>
 
           <span className="mono-label hidden text-muted-foreground sm:inline">{email}</span>
+          <span
+            className="mono-label rounded-full border border-border px-2 py-1 text-muted-foreground"
+            title={isAdmin ? "Admin — full control" : canEdit ? "Editor" : "User — view only"}
+          >
+            {isAdmin ? "Admin" : canEdit ? "Editor" : "View only"}
+          </span>
           <button
             onClick={onSignOut}
             className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -180,16 +190,22 @@ function Shell({
       ) : (
         <div className="mx-auto flex max-w-md flex-col items-center gap-4 px-5 py-24 text-center">
           <Building2 className="size-8 text-primary" />
-          <h1 className="text-xl font-semibold text-foreground">Add your first company</h1>
+          <h1 className="text-xl font-semibold text-foreground">
+            {isAdmin ? "Add your first company" : "No company access yet"}
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Every tracker is scoped to a company, so create one to get started.
+            {isAdmin
+              ? "Every tracker is scoped to a company, so create one to get started."
+              : "Ask an admin to set up a company — trackers are scoped per company."}
           </p>
-          <button
-            onClick={() => setManageOpen(true)}
-            className="rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground"
-          >
-            Manage companies
-          </button>
+          {isAdmin ? (
+            <button
+              onClick={() => setManageOpen(true)}
+              className="rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground"
+            >
+              Manage companies
+            </button>
+          ) : null}
         </div>
       )}
 

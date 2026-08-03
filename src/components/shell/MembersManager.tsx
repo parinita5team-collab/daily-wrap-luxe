@@ -9,10 +9,10 @@ const field =
 
 export function MembersManager({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { company } = useCompanies();
-  const { members, myRole, unclaimed, isAdmin, email, addMember, setRole, removeMember } =
+  const { members, myRole, isAppAdmin, isAdmin, email, addMember, setRole, removeMember } =
     useCompanyMembers(open ? (company?.id ?? null) : null);
   const [invite, setInvite] = useState("");
-  const [role, setRoleDraft] = useState<CompanyRole>("editor");
+  const [role, setRoleDraft] = useState<CompanyRole>("viewer");
   const [error, setError] = useState("");
 
   const submit = async () => {
@@ -50,9 +50,9 @@ export function MembersManager({ open, onClose }: { open: boolean; onClose: () =
                   {company?.name ?? "Company"} team
                 </h2>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {unclaimed
-                    ? "No roles yet — the first person added becomes the access list."
-                    : `You are signed in as ${email} (${myRole ?? "no role"}).`}
+                  {isAppAdmin
+                    ? `Signed in as ${email} — permanent admin.`
+                    : `Signed in as ${email} (${myRole === "editor" ? "editor" : myRole === "admin" ? "admin" : "user — view only"}).`}
                 </p>
               </div>
               <button
@@ -138,7 +138,7 @@ export function MembersManager({ open, onClose }: { open: boolean; onClose: () =
               </div>
             ) : (
               <p className="mt-5 border-t border-border pt-5 text-xs text-muted-foreground">
-                Only company admins can change roles.
+                Only admins can change roles. New teammates get view-only access by default.
               </p>
             )}
           </motion.div>

@@ -1,13 +1,45 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useCompanies } from "@/lib/companies/context";
 
 export type CompanyRole = "admin" | "editor" | "viewer";
 
 export const ROLES: { id: CompanyRole; label: string; blurb: string }[] = [
+  { id: "viewer", label: "User", blurb: "View trackers, add Brain Wave ideas" },
+  { id: "editor", label: "Editor", blurb: "Can also log and edit tracker data" },
   { id: "admin", label: "Admin", blurb: "Full control, manages members" },
-  { id: "editor", label: "Editor", blurb: "Can create and edit tracker data" },
-  { id: "viewer", label: "Viewer", blurb: "Read-only across trackers" },
 ];
+
+/** Permanent admins live in the app_admins table; only they can read it. */
+export function useAppAdmin() {
+  const [isAppAdmin, setIsAppAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const mail = (userData.user?.email ?? "").toLowerCase();
+      if (!mail) {
+        if (active) {
+          setIsAppAdmin(false);
+          setLoading(false);
+        }
+        return;
+      }
+      const { data } = await supabase.from("app_admins").select("email").eq("email", mail).maybeSingle();
+      if (active) {
+        setIsAppAdmin(Boolean(data));
+        setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return { isAppAdmin, loading };
+}
 
 export interface CompanyMember {
   id: string;
@@ -23,6 +55,7 @@ export function useCompanyMembers(companyId: string | null) {
   const [members, setMembers] = useState<CompanyMember[]>([]);
   const [email, setEmail] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const { isAppAdmin } = useAppAdmin();
 
   const refresh = useCallback(async () => {
     if (!companyId) {
@@ -46,10 +79,10 @@ export function useCompanyMembers(companyId: string | null) {
 
   const myRole: CompanyRole | null =
     members.find((m) => m.user_email.toLowerCase() === email)?.role ?? null;
-  // Until a company has members, everyone signed in behaves as an admin so nobody is locked out.
-  const unclaimed = members.length === 0;
-  const isAdmin = unclaimed || myRole === "admin";
-  const canEdit = unclaimed || myRole === "admin" || myRole === "editor";
+  // Permanent admins (app_admins table) always have full control; everyone
+  // else is view-only until an admin grants them editor or admin rights.
+  const isAdmin = isAppAdmin || myRole === "admin";
+  const canEdit = isAdmin || myRole === "editor";
 
   const addMember = useCallback(
     async (newEmail: string, role: CompanyRole) => {
@@ -83,5 +116,24 @@ export function useCompanyMembers(companyId: string | null) {
     [refresh],
   );
 
-  return { members, loading, myRole, unclaimed, isAdmin, canEdit, email, addMember, setRole, removeMember, refresh };
+  return {
+    members,
+    loading,
+    myRole,
+    isAppAdmin,
+    isAdmin,
+    canEdit,
+    email,
+    addMember,
+    setRole,
+    removeMember,
+    refresh,
+  };
+}
+
+/** Edit rights for the currently selected company. */
+export function useCanEdit() {
+  const { company } = useCompanies();
+  const { canEdit, isAdmin, myRole, isAppAdmin } = useCompanyMembers(company?.id ?? null);
+  return { canEdit, isAdmin, myRole, isAppAdmin };
 }
