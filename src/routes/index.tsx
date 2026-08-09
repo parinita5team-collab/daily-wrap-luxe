@@ -6,6 +6,7 @@ import { StatsCard } from "@/components/daily-wrap/StatsCard";
 import { TeamColumn } from "@/components/daily-wrap/TeamColumn";
 import { TaskModal, type TaskDraft } from "@/components/daily-wrap/TaskModal";
 import { useTasks } from "@/lib/daily-wrap/storage";
+import { useDepartment } from "@/lib/departments/context";
 import { AppShell } from "@/components/shell/AppShell";
 import { useCompanies } from "@/lib/companies/context";
 import { useCanEdit } from "@/lib/access/roles";
@@ -60,7 +61,8 @@ function shift(key: string, days: number) {
 function Index() {
   const { company } = useCompanies();
   const { canEdit } = useCanEdit();
-  const { tasks, saveTask, deleteTask } = useTasks(company?.id ?? null);
+  const { department } = useDepartment();
+  const { tasks, saveTask, deleteTask } = useTasks(company?.id ?? null, department);
   const [dateKey, setDateKey] = useState(() => toKey(new Date()));
   const [draft, setDraft] = useState<TaskDraft | null>(null);
   const [copied, setCopied] = useState(false);

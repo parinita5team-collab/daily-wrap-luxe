@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Plus, Trash2, X } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useCompanies } from "@/lib/companies/context";
 import { useCanEdit } from "@/lib/access/roles";
+import { useDepartment } from "@/lib/departments/context";
 import {
   EVENT_STATUSES,
   EVENT_TYPES,
@@ -65,7 +66,7 @@ function emptyDraft(date: string): Draft {
 function CalendarPage() {
   const { company } = useCompanies();
   const { canEdit } = useCanEdit();
-  const { events, saveEvent, deleteEvent } = useCalendarEvents(company?.id ?? null);
+  const { events, saveEvent, deleteEvent } = useCalendarEvents(company?.id ?? null, useDepartment().department);
   const today = new Date();
   const [cursor, setCursor] = useState({ y: today.getFullYear(), m: today.getMonth() });
   const [filter, setFilter] = useState<string>("all");

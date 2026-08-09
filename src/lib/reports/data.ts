@@ -75,13 +75,18 @@ export function prettyDate(key: string) {
   });
 }
 
-/** All tracker rows for a company, optionally limited to an inclusive date range. */
-export function useCompanyData(companyId: string | null, from?: string, to?: string) {
+/** All tracker rows for a company + department, optionally limited to a date range. */
+export function useCompanyData(
+  companyId: string | null,
+  department: string | null,
+  from?: string,
+  to?: string,
+) {
   const [data, setData] = useState<CompanyData>(EMPTY);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    if (!companyId) {
+    if (!companyId || !department) {
       setData(EMPTY);
       setLoading(false);
       return;
@@ -93,19 +98,22 @@ export function useCompanyData(companyId: string | null, from?: string, to?: str
       .select(
         "id, team_member, task, project, company, timeline, date, status, created_at, updated_at",
       )
-      .eq("company_id", companyId);
+      .eq("company_id", companyId)
+      .eq("department", department);
     let entriesQ = supabase
       .from("stage_entries")
       .select(
         "id, platform, entry_date, status, metric_value, content_today, notes, next_steps, owner, created_at, updated_at",
       )
-      .eq("company_id", companyId);
+      .eq("company_id", companyId)
+      .eq("department", department);
     let eventsQ = supabase
       .from("calendar_events")
       .select(
         "id, title, event_type, status, event_date, start_time, end_time, venue, location, owner, requirements, notes, created_at, updated_at",
       )
-      .eq("company_id", companyId);
+      .eq("company_id", companyId)
+      .eq("department", department);
 
     if (from) {
       tasksQ = tasksQ.gte("date", from);
@@ -130,7 +138,7 @@ export function useCompanyData(companyId: string | null, from?: string, to?: str
       events: (events.data ?? []) as ReportEvent[],
     });
     setLoading(false);
-  }, [companyId, from, to]);
+  }, [companyId, department, from, to]);
 
   useEffect(() => {
     void refresh();

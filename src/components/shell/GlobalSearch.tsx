@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Bookmark, CalendarClock, CheckSquare, Radio, Search, SlidersHorizontal, Trash2, X } from "lucide-react";
 import { useCompanies } from "@/lib/companies/context";
 import { prettyDate, useCompanyData } from "@/lib/reports/data";
+import { useDepartment } from "@/lib/departments/context";
 import { PLATFORMS, STAGE_STATUS_LABEL, type StageStatus } from "@/lib/run-of-show/data";
 import { typeInfo } from "@/lib/calendar/data";
 import { useSavedSearches } from "@/lib/search/saved";
@@ -41,8 +42,10 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
   const [to, setTo] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [saveName, setSaveName] = useState("");
+  const { department } = useDepartment();
   const { data, loading } = useCompanyData(
     open ? (company?.id ?? null) : null,
+    department,
     from || undefined,
     to || undefined,
   );

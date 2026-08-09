@@ -36,18 +36,19 @@ export interface CalendarEvent {
 const SELECT =
   "id, title, event_type, status, event_date, start_time, end_time, venue, location, owner, requirements, notes";
 
-export function useCalendarEvents(companyId: string | null) {
+export function useCalendarEvents(companyId: string | null, department: string | null) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
   const refresh = useCallback(async () => {
-    if (!companyId) return setEvents([]);
+    if (!companyId || !department) return setEvents([]);
     const { data } = await supabase
       .from("calendar_events")
       .select(SELECT)
       .eq("company_id", companyId)
+      .eq("department", department)
       .order("event_date", { ascending: true });
     if (data) setEvents(data as CalendarEvent[]);
-  }, [companyId]);
+  }, [companyId, department]);
 
   useEffect(() => {
     void refresh();
@@ -65,7 +66,7 @@ export function useCalendarEvents(companyId: string | null) {
 
   const saveEvent = useCallback(
     async (event: Omit<CalendarEvent, "id"> & { id?: string }) => {
-      if (!companyId) return;
+      if (!companyId || !department) return;
       const { id, ...payload } = event;
       if (id) {
         await supabase.from("calendar_events").update(payload).eq("id", id);
@@ -73,11 +74,16 @@ export function useCalendarEvents(companyId: string | null) {
         const { data: userData } = await supabase.auth.getUser();
         await supabase
           .from("calendar_events")
-          .insert({ ...payload, company_id: companyId, created_by: userData.user?.id ?? null });
+          .insert({
+            ...payload,
+            company_id: companyId,
+            department,
+            created_by: userData.user?.id ?? null,
+          });
       }
       await refresh();
     },
-    [companyId, refresh],
+    [companyId, department, refresh],
   );
 
   const deleteEvent = useCallback(

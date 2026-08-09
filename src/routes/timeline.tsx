@@ -5,6 +5,7 @@ import { CalendarClock, CheckSquare, Radio } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useCompanies } from "@/lib/companies/context";
 import { prettyDate, useCompanyData } from "@/lib/reports/data";
+import { useDepartment } from "@/lib/departments/context";
 import { PLATFORMS, STAGE_STATUS_LABEL, type StageStatus } from "@/lib/run-of-show/data";
 import { typeInfo } from "@/lib/calendar/data";
 import { cn } from "@/lib/utils";
@@ -71,7 +72,7 @@ function timeOf(iso: string) {
 
 function Timeline() {
   const { company } = useCompanies();
-  const { data, loading } = useCompanyData(company?.id ?? null);
+  const { data, loading } = useCompanyData(company?.id ?? null, useDepartment().department);
   const [filter, setFilter] = useState<Kind | "all">("all");
 
   const entries = useMemo(() => {

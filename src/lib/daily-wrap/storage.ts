@@ -32,12 +32,12 @@ function isUuid(id: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 }
 
-export function useTasks(companyId: string | null) {
+export function useTasks(companyId: string | null, department: string | null) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   const refresh = useCallback(async () => {
-    if (!companyId) {
+    if (!companyId || !department) {
       setTasks([]);
       setHydrated(true);
       return;
@@ -46,10 +46,11 @@ export function useTasks(companyId: string | null) {
       .from("tasks")
       .select(SELECT)
       .eq("company_id", companyId)
+      .eq("department", department)
       .order("created_at", { ascending: true });
     if (!error && data) setTasks((data as Row[]).map(toTask));
     setHydrated(true);
-  }, [companyId]);
+  }, [companyId, department]);
 
   useEffect(() => {
     void refresh();
@@ -67,7 +68,7 @@ export function useTasks(companyId: string | null) {
 
   const saveTask = useCallback(
     async (task: Task) => {
-      if (!companyId) return;
+      if (!companyId || !department) return;
       const payload = {
         team_member: task.teamMember,
         task: task.task,
@@ -77,6 +78,7 @@ export function useTasks(companyId: string | null) {
         date: task.date,
         status: task.status,
         company_id: companyId,
+        department,
       };
 
       if (task.id && isUuid(task.id) && tasks.some((t) => t.id === task.id)) {
@@ -93,7 +95,7 @@ export function useTasks(companyId: string | null) {
       }
       void refresh();
     },
-    [tasks, refresh, companyId],
+    [tasks, refresh, companyId, department],
   );
 
   const deleteTask = useCallback(

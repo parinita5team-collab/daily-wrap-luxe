@@ -5,6 +5,7 @@ import { CalendarDays, Check, Copy, Download, FileText, Printer, Table2 } from "
 import { AppShell } from "@/components/shell/AppShell";
 import { useCompanies } from "@/lib/companies/context";
 import { dateKey, prettyDate, shiftKey, useCompanyData } from "@/lib/reports/data";
+import { useDepartment } from "@/lib/departments/context";
 import { buildTextReport, downloadText, printReport } from "@/lib/reports/report";
 import { combinedCsv, downloadCsv, eventsCsv, stagesCsv, tasksCsv } from "@/lib/reports/csv";
 import { PLATFORMS, STAGE_STATUS_LABEL, type StageStatus } from "@/lib/run-of-show/data";
@@ -50,7 +51,7 @@ function Overview() {
   const [to, setTo] = useState(() => dateKey());
   const [copied, setCopied] = useState(false);
 
-  const { data, loading } = useCompanyData(company?.id ?? null, from, to);
+  const { data, loading } = useCompanyData(company?.id ?? null, useDepartment().department, from, to);
 
   const applyPreset = (days: number) => {
     setPreset(days);

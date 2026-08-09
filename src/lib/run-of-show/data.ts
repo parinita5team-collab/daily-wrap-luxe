@@ -95,18 +95,19 @@ export function emptyEntry(platform: string): StageEntry {
   };
 }
 
-export function useStageEntries(companyId: string | null) {
+export function useStageEntries(companyId: string | null, department: string | null) {
   const [entries, setEntries] = useState<StageEntry[]>([]);
 
   const refresh = useCallback(async () => {
-    if (!companyId) return setEntries([]);
+    if (!companyId || !department) return setEntries([]);
     const { data } = await supabase
       .from("stage_entries")
       .select(SELECT)
       .eq("company_id", companyId)
+      .eq("department", department)
       .order("entry_date", { ascending: false });
     if (data) setEntries(data as StageEntry[]);
-  }, [companyId]);
+  }, [companyId, department]);
 
   useEffect(() => {
     void refresh();
@@ -124,11 +125,12 @@ export function useStageEntries(companyId: string | null) {
 
   const logUpdate = useCallback(
     async (entry: Omit<StageEntry, "id" | "updated_at">) => {
-      if (!companyId) return;
+      if (!companyId || !department) return;
       const { data: userData } = await supabase.auth.getUser();
       await supabase.from("stage_entries").upsert(
         {
           company_id: companyId,
+          department,
           platform: entry.platform,
           entry_date: entry.entry_date,
           status: entry.status,
@@ -139,11 +141,11 @@ export function useStageEntries(companyId: string | null) {
           owner: entry.owner,
           created_by: userData.user?.id ?? null,
         },
-        { onConflict: "company_id,platform,entry_date" },
+        { onConflict: "company_id,department,platform,entry_date" },
       );
       await refresh();
     },
-    [companyId, refresh],
+    [companyId, department, refresh],
   );
 
   const current = (platform: string, date: string) =>

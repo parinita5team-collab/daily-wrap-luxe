@@ -34,6 +34,7 @@ export type Database = {
           company_id: string
           created_at: string
           created_by: string | null
+          department: string
           end_time: string
           event_date: string
           event_type: string
@@ -52,6 +53,7 @@ export type Database = {
           company_id: string
           created_at?: string
           created_by?: string | null
+          department?: string
           end_time?: string
           event_date: string
           event_type?: string
@@ -70,6 +72,7 @@ export type Database = {
           company_id?: string
           created_at?: string
           created_by?: string | null
+          department?: string
           end_time?: string
           event_date?: string
           event_type?: string
@@ -128,6 +131,7 @@ export type Database = {
         Row: {
           company_id: string
           created_at: string
+          department: string | null
           id: string
           invited_by: string | null
           role: Database["public"]["Enums"]["company_role"]
@@ -137,6 +141,7 @@ export type Database = {
         Insert: {
           company_id: string
           created_at?: string
+          department?: string | null
           id?: string
           invited_by?: string | null
           role?: Database["public"]["Enums"]["company_role"]
@@ -146,6 +151,7 @@ export type Database = {
         Update: {
           company_id?: string
           created_at?: string
+          department?: string | null
           id?: string
           invited_by?: string | null
           role?: Database["public"]["Enums"]["company_role"]
@@ -199,6 +205,7 @@ export type Database = {
           company_id: string
           created_at: string
           created_by: string | null
+          department: string
           description: string
           estimated_saving: string
           id: string
@@ -214,6 +221,7 @@ export type Database = {
           company_id: string
           created_at?: string
           created_by?: string | null
+          department?: string
           description?: string
           estimated_saving?: string
           id?: string
@@ -229,6 +237,7 @@ export type Database = {
           company_id?: string
           created_at?: string
           created_by?: string | null
+          department?: string
           description?: string
           estimated_saving?: string
           id?: string
@@ -365,6 +374,7 @@ export type Database = {
           content_today: string
           created_at: string
           created_by: string | null
+          department: string
           entry_date: string
           id: string
           metric_value: number | null
@@ -380,6 +390,7 @@ export type Database = {
           content_today?: string
           created_at?: string
           created_by?: string | null
+          department?: string
           entry_date?: string
           id?: string
           metric_value?: number | null
@@ -395,6 +406,7 @@ export type Database = {
           content_today?: string
           created_at?: string
           created_by?: string | null
+          department?: string
           entry_date?: string
           id?: string
           metric_value?: number | null
@@ -422,6 +434,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           date: string
+          department: string
           id: string
           project: string
           status: string
@@ -436,6 +449,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           date: string
+          department?: string
           id?: string
           project?: string
           status?: string
@@ -450,6 +464,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           date?: string
+          department?: string
           id?: string
           project?: string
           status?: string
@@ -474,12 +489,21 @@ export type Database = {
     }
     Functions: {
       can_edit_company: { Args: { _company_id: string }; Returns: boolean }
+      can_edit_department: {
+        Args: { _company_id: string; _department: string }
+        Returns: boolean
+      }
+      can_view_department: {
+        Args: { _company_id: string; _department: string }
+        Returns: boolean
+      }
       company_role_of: {
         Args: { _company_id: string }
         Returns: Database["public"]["Enums"]["company_role"]
       }
       is_app_admin: { Args: never; Returns: boolean }
       is_company_admin: { Args: { _company_id: string }; Returns: boolean }
+      my_department: { Args: { _company_id: string }; Returns: string }
     }
     Enums: {
       company_role: "admin" | "editor" | "viewer"

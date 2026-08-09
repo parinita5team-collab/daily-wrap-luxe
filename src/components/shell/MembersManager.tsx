@@ -3,23 +3,25 @@ import { AnimatePresence, motion } from "motion/react";
 import { ShieldCheck, Trash2, X } from "lucide-react";
 import { useCompanies } from "@/lib/companies/context";
 import { ROLES, useCompanyMembers, type CompanyRole } from "@/lib/access/roles";
+import { DEPARTMENTS } from "@/lib/departments/context";
 
 const field =
   "w-full rounded-xl border border-border bg-surface-raised px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground/60 focus:border-primary/60";
 
 export function MembersManager({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { company } = useCompanies();
-  const { members, myRole, isAppAdmin, isAdmin, email, addMember, setRole, removeMember } =
+  const { members, myRole, isAppAdmin, isAdmin, email, addMember, setRole, setDepartment, removeMember } =
     useCompanyMembers(open ? (company?.id ?? null) : null);
   const [invite, setInvite] = useState("");
   const [role, setRoleDraft] = useState<CompanyRole>("viewer");
+  const [dept, setDept] = useState<string>(DEPARTMENTS[0].id);
   const [error, setError] = useState("");
 
   const submit = async () => {
     if (!invite.trim()) return;
     setError("");
     try {
-      await addMember(invite, role);
+      await addMember(invite, role, dept);
       setInvite("");
     } catch {
       setError("Could not add that person — they may already be on this company.");
@@ -86,6 +88,20 @@ export function MembersManager({ open, onClose }: { open: boolean; onClose: () =
                       </option>
                     ))}
                   </select>
+                  <select
+                    value={m.department ?? ""}
+                    disabled={!isAdmin}
+                    aria-label={`Department for ${m.user_email}`}
+                    onChange={(e) => void setDepartment(m.id, e.target.value)}
+                    className="rounded-lg border border-border bg-card px-2 py-1.5 text-xs text-foreground outline-none disabled:opacity-50"
+                  >
+                    <option value="">No department</option>
+                    {DEPARTMENTS.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.label}
+                      </option>
+                    ))}
+                  </select>
                   {isAdmin ? (
                     <button
                       onClick={() => void removeMember(m.id)}
@@ -129,6 +145,18 @@ export function MembersManager({ open, onClose }: { open: boolean; onClose: () =
                   ))}
                 </div>
                 {error ? <p className="text-xs text-danger">{error}</p> : null}
+                <label className="mono-label block text-muted-foreground">Department</label>
+                <select
+                  value={dept}
+                  onChange={(e) => setDept(e.target.value)}
+                  className={field}
+                >
+                  {DEPARTMENTS.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.label}
+                    </option>
+                  ))}
+                </select>
                 <button
                   onClick={() => void submit()}
                   className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground"
@@ -138,7 +166,8 @@ export function MembersManager({ open, onClose }: { open: boolean; onClose: () =
               </div>
             ) : (
               <p className="mt-5 border-t border-border pt-5 text-xs text-muted-foreground">
-                Only admins can change roles. New teammates get view-only access by default.
+                Only admins can change roles or departments. New teammates get view-only access to
+                their own department by default.
               </p>
             )}
           </motion.div>
