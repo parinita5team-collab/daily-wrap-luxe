@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useCompanies } from "@/lib/companies/context";
 import { useCanEdit } from "@/lib/access/roles";
+import { useDepartment } from "@/lib/departments/context";
 import {
   PLATFORMS,
   STAGE_STATUS_COLOR,
@@ -42,7 +43,7 @@ export const Route = createFileRoute("/run-of-show")({
 function RunOfShow() {
   const { company } = useCompanies();
   const { canEdit } = useCanEdit();
-  const { current, history, logUpdate } = useStageEntries(company?.id ?? null);
+  const { current, history, logUpdate } = useStageEntries(company?.id ?? null, useDepartment().department);
   const [date] = useState(() => todayKey());
   const [open, setOpen] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);

@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Lightbulb, Plus, ThumbsUp, Trash2, X } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useCompanies } from "@/lib/companies/context";
+import { useDepartment } from "@/lib/departments/context";
 import { useCompanyMembers } from "@/lib/access/roles";
 import {
   IDEA_CATEGORIES,
@@ -59,7 +60,7 @@ function BrainWave() {
   const { company } = useCompanies();
   const { canEdit } = useCompanyMembers(company?.id ?? null);
   const { ideas, votes, myVotes, userId, loading, addIdea, updateIdea, deleteIdea, toggleVote } =
-    useIdeas(company?.id ?? null);
+    useIdeas(company?.id ?? null, useDepartment().department);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<IdeaDraft>(EMPTY);
   const [impactFilter, setImpactFilter] = useState<string>("all");
