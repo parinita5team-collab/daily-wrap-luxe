@@ -50,7 +50,7 @@ export interface IdeaDraft {
 const SELECT =
   "id, company_id, title, description, category, impact, estimated_saving, status, author_name, author_email, created_by, created_at, updated_at";
 
-export function useIdeas(companyId: string | null) {
+export function useIdeas(companyId: string | null, department: string | null) {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [votes, setVotes] = useState<Record<string, number>>({});
   const [myVotes, setMyVotes] = useState<Set<string>>(new Set());
@@ -58,7 +58,7 @@ export function useIdeas(companyId: string | null) {
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    if (!companyId) {
+    if (!companyId || !department) {
       setIdeas([]);
       setLoading(false);
       return;
@@ -71,6 +71,7 @@ export function useIdeas(companyId: string | null) {
       .from("ideas")
       .select(SELECT)
       .eq("company_id", companyId)
+      .eq("department", department)
       .order("created_at", { ascending: false });
     const rows = (data ?? []) as Idea[];
     setIdeas(rows);
@@ -94,7 +95,7 @@ export function useIdeas(companyId: string | null) {
       setMyVotes(new Set());
     }
     setLoading(false);
-  }, [companyId]);
+  }, [companyId, department]);
 
   useEffect(() => {
     setLoading(true);
@@ -103,19 +104,20 @@ export function useIdeas(companyId: string | null) {
 
   const addIdea = useCallback(
     async (draft: IdeaDraft) => {
-      if (!companyId) return;
+      if (!companyId || !department) return;
       const { data: userData } = await supabase.auth.getUser();
       const user = userData.user;
       await supabase.from("ideas").insert({
         ...draft,
         company_id: companyId,
+        department,
         created_by: user?.id ?? null,
         author_email: user?.email ?? "",
         author_name: (user?.email ?? "").split("@")[0] ?? "",
       });
       await refresh();
     },
-    [companyId, refresh],
+    [companyId, department, refresh],
   );
 
   const updateIdea = useCallback(
