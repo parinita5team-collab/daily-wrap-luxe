@@ -1,8 +1,9 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { BellRing, Building2, ChevronDown, Search, Settings2, Users } from "lucide-react";
+import { BellRing, Building2, ChevronDown, Layers, Search, Settings2, Users } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { CompanyProvider, accentForeground, useCompanies } from "@/lib/companies/context";
+import { DepartmentProvider, departmentLabel, useDepartment } from "@/lib/departments/context";
 import { useCanEdit } from "@/lib/access/roles";
 import { CompanyManager } from "./CompanyManager";
 import { MembersManager } from "./MembersManager";
@@ -29,9 +30,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <CompanyProvider enabled={!!user}>
-      <Shell email={user?.email ?? ""} onSignOut={() => void signOut()}>
-        {children}
-      </Shell>
+      <DepartmentProvider>
+        <Shell email={user?.email ?? ""} onSignOut={() => void signOut()}>
+          {children}
+        </Shell>
+      </DepartmentProvider>
     </CompanyProvider>
   );
 }
@@ -47,7 +50,14 @@ function Shell({
 }) {
   const { companies, company, selectCompany } = useCompanies();
   const { isAdmin, canEdit } = useCanEdit();
+  const {
+    departments,
+    department,
+    loading: deptLoading,
+    selectDepartment,
+  } = useDepartment();
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [deptOpen, setDeptOpen] = useState(false);
   const [manageOpen, setManageOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [membersOpen, setMembersOpen] = useState(false);
@@ -169,6 +179,44 @@ function Shell({
             ) : null}
           </div>
 
+          {department ? (
+            <div className="relative">
+              <button
+                onClick={() => setDeptOpen((v) => !v)}
+                className="flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary/40"
+              >
+                <Layers className="size-3.5 text-primary" />
+                {departmentLabel(department)}
+                {departments.length > 1 ? (
+                  <ChevronDown className="size-3.5 text-muted-foreground" />
+                ) : null}
+              </button>
+              {deptOpen && departments.length > 1 ? (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setDeptOpen(false)} />
+                  <div className="absolute right-0 z-20 mt-2 w-60 rounded-xl border border-border bg-card p-1.5 shadow-lift">
+                    {departments.map((d) => (
+                      <button
+                        key={d.id}
+                        onClick={() => {
+                          selectDepartment(d.id);
+                          setDeptOpen(false);
+                        }}
+                        className={cn(
+                          "flex w-full flex-col rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-surface-raised",
+                          d.id === department ? "text-foreground" : "text-muted-foreground",
+                        )}
+                      >
+                        <span className="font-medium">{d.label}</span>
+                        <span className="text-[11px] text-muted-foreground">{d.blurb}</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : null}
+            </div>
+          ) : null}
+
           <span className="mono-label hidden text-muted-foreground sm:inline">{email}</span>
           <span
             className="mono-label rounded-full border border-border px-2 py-1 text-muted-foreground"
@@ -185,9 +233,7 @@ function Shell({
         </div>
       </header>
 
-      {company ? (
-        children
-      ) : (
+      {!company ? (
         <div className="mx-auto flex max-w-md flex-col items-center gap-4 px-5 py-24 text-center">
           <Building2 className="size-8 text-primary" />
           <h1 className="text-xl font-semibold text-foreground">
@@ -206,6 +252,46 @@ function Shell({
               Manage companies
             </button>
           ) : null}
+        </div>
+      ) : deptLoading ? (
+        <div className="mx-auto max-w-md px-5 py-24 text-center text-sm text-muted-foreground">
+          Loading your access…
+        </div>
+      ) : department ? (
+        children
+      ) : departments.length > 0 ? (
+        <div className="mx-auto w-full max-w-2xl px-5 py-20">
+          <span className="mono-label text-primary">Step 1</span>
+          <h1 className="mt-2 font-display text-3xl tracking-tight text-foreground">
+            Choose a department
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Every tracker — Daily Wrap, Run of Show, Calendar, Brain Wave — is scoped to the
+            department you pick. You can switch any time from the header.
+          </p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            {departments.map((d) => (
+              <button
+                key={d.id}
+                onClick={() => selectDepartment(d.id)}
+                className="rounded-2xl border border-border bg-card p-4 text-left transition-colors hover:border-primary/50"
+              >
+                <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <Layers className="size-4 text-primary" /> {d.label}
+                </span>
+                <span className="mt-1 block text-xs text-muted-foreground">{d.blurb}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="mx-auto flex max-w-md flex-col items-center gap-4 px-5 py-24 text-center">
+          <Layers className="size-8 text-primary" />
+          <h1 className="text-xl font-semibold text-foreground">No department assigned yet</h1>
+          <p className="text-sm text-muted-foreground">
+            Ask an admin to assign you to a department (Creative, Marketing, Accounts, Production,
+            Procurement or HR / Admin) for {company.name}.
+          </p>
         </div>
       )}
 
