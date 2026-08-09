@@ -46,10 +46,11 @@ export interface CompanyMember {
   company_id: string;
   user_email: string;
   role: CompanyRole;
+  department: string | null;
   created_at: string;
 }
 
-const SELECT = "id, company_id, user_email, role, created_at";
+const SELECT = "id, company_id, user_email, role, department, created_at";
 
 export function useCompanyMembers(companyId: string | null) {
   const [members, setMembers] = useState<CompanyMember[]>([]);
@@ -85,13 +86,14 @@ export function useCompanyMembers(companyId: string | null) {
   const canEdit = isAdmin || myRole === "editor";
 
   const addMember = useCallback(
-    async (newEmail: string, role: CompanyRole) => {
+    async (newEmail: string, role: CompanyRole, department: string) => {
       if (!companyId) return;
       const { data: userData } = await supabase.auth.getUser();
       const { error } = await supabase.from("company_members").insert({
         company_id: companyId,
         user_email: newEmail.trim().toLowerCase(),
         role,
+        department,
         invited_by: userData.user?.id ?? null,
       });
       await refresh();
@@ -103,6 +105,14 @@ export function useCompanyMembers(companyId: string | null) {
   const setRole = useCallback(
     async (id: string, role: CompanyRole) => {
       await supabase.from("company_members").update({ role }).eq("id", id);
+      await refresh();
+    },
+    [refresh],
+  );
+
+  const setDepartment = useCallback(
+    async (id: string, department: string) => {
+      await supabase.from("company_members").update({ department }).eq("id", id);
       await refresh();
     },
     [refresh],
@@ -126,6 +136,7 @@ export function useCompanyMembers(companyId: string | null) {
     email,
     addMember,
     setRole,
+    setDepartment,
     removeMember,
     refresh,
   };
