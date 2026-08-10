@@ -90,7 +90,7 @@ function Shell({
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center gap-3 px-5 py-3">
           <nav className="flex items-center gap-1 rounded-full border border-border bg-card p-1">
-            {TRACKERS.map((t) => (
+            {TRACKERS.filter((t) => t.to !== "/run-of-show" || department === "marketing").map((t) => (
               <Link
                 key={t.to}
                 to={t.to}
