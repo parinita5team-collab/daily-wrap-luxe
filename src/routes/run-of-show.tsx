@@ -43,7 +43,8 @@ export const Route = createFileRoute("/run-of-show")({
 function RunOfShow() {
   const { company } = useCompanies();
   const { canEdit } = useCanEdit();
-  const { current, history, logUpdate } = useStageEntries(company?.id ?? null, useDepartment().department);
+  const { department } = useDepartment();
+  const { current, history, logUpdate } = useStageEntries(company?.id ?? null, department);
   const [date] = useState(() => todayKey());
   const [open, setOpen] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -75,6 +76,19 @@ function RunOfShow() {
   };
 
   return (
+    department && department !== "marketing" ? (
+      <main className="mx-auto w-full max-w-[720px] px-5 pt-16 pb-[60px]">
+        <div className="rounded-[14px] border border-border bg-card p-8 text-center shadow-card">
+          <span className="mono-label text-primary">Marketing only</span>
+          <h1 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
+            Run of Show lives in Marketing
+          </h1>
+          <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
+            Switch to the Marketing department to open the daily channel call sheet.
+          </p>
+        </div>
+      </main>
+    ) : (
     <main className="mx-auto w-full max-w-[1180px] px-5 pt-7 pb-[60px]">
       <header className="relative overflow-hidden rounded-[14px] border border-border bg-card p-7 shadow-card">
         <div
@@ -166,6 +180,7 @@ function RunOfShow() {
         On cue — running to plan · Standby — needs a look · Hold — blocked, needs the boss
       </p>
     </main>
+    )
   );
 }
 
