@@ -22,22 +22,44 @@ const TRACKERS = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, loading, signOut } = useAuth();
+  const { isAppAdmin, loading: adminLoading } = useAppAdmin();
   const navigate = useNavigate();
+  const email = user?.email ?? "";
+  const allowed = !email || isCompanyEmail(email) || isAppAdmin;
 
   useEffect(() => {
     if (!loading && !user) void navigate({ to: "/auth", search: { next: "/" } });
   }, [loading, user, navigate]);
 
+  if (user && !adminLoading && !allowed) {
+    return (
+      <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-4 px-5 text-center">
+        <ShieldAlert className="size-8 text-destructive" />
+        <h1 className="text-xl font-semibold text-foreground">Company access only</h1>
+        <p className="text-sm text-muted-foreground">
+          {email} isn’t a company mailbox. Sign in with your {DOMAIN_HINT} email to use the portal.
+        </p>
+        <button
+          onClick={() => void signOut()}
+          className="rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-foreground"
+        >
+          Sign out
+        </button>
+      </main>
+    );
+  }
+
   return (
-    <CompanyProvider enabled={!!user}>
+    <CompanyProvider enabled={!!user && allowed}>
       <DepartmentProvider>
-        <Shell email={user?.email ?? ""} onSignOut={() => void signOut()}>
+        <Shell email={email} onSignOut={() => void signOut()}>
           {children}
         </Shell>
       </DepartmentProvider>
     </CompanyProvider>
   );
 }
+
 
 function Shell({
   email,
