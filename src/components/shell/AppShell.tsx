@@ -1,10 +1,12 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { BellRing, Building2, ChevronDown, Layers, Search, Settings2, Users } from "lucide-react";
+import { BellRing, Building2, ChevronDown, Layers, Search, Settings2, ShieldAlert, Users } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { CompanyProvider, accentForeground, useCompanies } from "@/lib/companies/context";
 import { DepartmentProvider, departmentLabel, useDepartment } from "@/lib/departments/context";
-import { useCanEdit } from "@/lib/access/roles";
+import { useAppAdmin, useCanEdit } from "@/lib/access/roles";
+import { DOMAIN_HINT, isCompanyEmail } from "@/lib/access/domains";
+
 import { CompanyManager } from "./CompanyManager";
 import { MembersManager } from "./MembersManager";
 import { ReminderCenter } from "./ReminderCenter";
