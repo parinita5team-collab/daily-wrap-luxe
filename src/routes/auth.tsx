@@ -141,7 +141,7 @@ function AuthPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@company.com"
+            placeholder="you@5team.me"
             className="w-full rounded-lg border border-border bg-secondary px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary"
           />
           <input
@@ -153,6 +153,12 @@ function AuthPage() {
             placeholder="Password"
             className="w-full rounded-lg border border-border bg-secondary px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary"
           />
+          {mode === "signup" && (
+            <p className="text-xs text-muted-foreground">
+              Min 6 characters, 1 capital letter and 1 special character.
+            </p>
+          )}
+
           {error && <p className="text-sm text-destructive">{error}</p>}
           {notice && <p className="text-sm text-primary">{notice}</p>}
           <button
