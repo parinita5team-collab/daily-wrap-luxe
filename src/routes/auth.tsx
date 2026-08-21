@@ -107,8 +107,9 @@ function AuthPage() {
           {mode === "signin" ? "Sign in to your board" : "Create your account"}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          The team board is shared — everyone signed in sees the same daily report.
+          Company access only — sign in with your {DOMAIN_HINT} email.
         </p>
+
 
         <button
           type="button"
