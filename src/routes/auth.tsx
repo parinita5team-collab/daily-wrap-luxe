@@ -51,6 +51,17 @@ function AuthPage() {
     e.preventDefault();
     setError(null);
     setNotice(null);
+    if (!isCompanyEmail(email)) {
+      setError(`Use your company email (${DOMAIN_HINT}) to access the portal.`);
+      return;
+    }
+    if (mode === "signup") {
+      const problem = passwordProblem(password);
+      if (problem) {
+        setError(problem);
+        return;
+      }
+    }
     setBusy(true);
     if (mode === "signup") {
       const { error: err } = await supabase.auth.signUp({
@@ -82,6 +93,7 @@ function AuthPage() {
     if (result.redirected) return;
     void navigate({ to: safePath(next) });
   };
+
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-5 py-16">
