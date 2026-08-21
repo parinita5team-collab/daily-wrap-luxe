@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/useAuth";
+import { DOMAIN_HINT, isCompanyEmail, passwordProblem } from "@/lib/access/domains";
+
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -51,6 +53,17 @@ function AuthPage() {
     e.preventDefault();
     setError(null);
     setNotice(null);
+    if (!isCompanyEmail(email)) {
+      setError(`Use your company email (${DOMAIN_HINT}) to access the portal.`);
+      return;
+    }
+    if (mode === "signup") {
+      const problem = passwordProblem(password);
+      if (problem) {
+        setError(problem);
+        return;
+      }
+    }
     setBusy(true);
     if (mode === "signup") {
       const { error: err } = await supabase.auth.signUp({
@@ -83,6 +96,7 @@ function AuthPage() {
     void navigate({ to: safePath(next) });
   };
 
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-5 py-16">
       <div className="w-full max-w-[420px] rounded-2xl border border-border bg-card p-8 shadow-xl">
@@ -93,8 +107,9 @@ function AuthPage() {
           {mode === "signin" ? "Sign in to your board" : "Create your account"}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          The team board is shared — everyone signed in sees the same daily report.
+          Company access only — sign in with your {DOMAIN_HINT} email.
         </p>
+
 
         <button
           type="button"
@@ -126,7 +141,7 @@ function AuthPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@company.com"
+            placeholder="you@5team.me"
             className="w-full rounded-lg border border-border bg-secondary px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary"
           />
           <input
@@ -138,6 +153,12 @@ function AuthPage() {
             placeholder="Password"
             className="w-full rounded-lg border border-border bg-secondary px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary"
           />
+          {mode === "signup" && (
+            <p className="text-xs text-muted-foreground">
+              Min 6 characters, 1 capital letter and 1 special character.
+            </p>
+          )}
+
           {error && <p className="text-sm text-destructive">{error}</p>}
           {notice && <p className="text-sm text-primary">{notice}</p>}
           <button
