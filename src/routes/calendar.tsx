@@ -212,6 +212,20 @@ function CalendarPage() {
                       {d}
                     </span>
                     <div className="mt-1.5 space-y-1">
+                      {uae.map((u) => (
+                        <div
+                          key={u.name}
+                          title={u.note ? `${u.name} — ${u.note}` : u.name}
+                          className="truncate rounded-md px-1.5 py-1 text-[11px] font-medium"
+                          style={{
+                            color: UAE_KIND_META[u.kind].color,
+                            background: `color-mix(in oklab, ${UAE_KIND_META[u.kind].color} 14%, transparent)`,
+                            borderLeft: `2px dashed ${UAE_KIND_META[u.kind].color}`,
+                          }}
+                        >
+                          {u.name}
+                        </div>
+                      ))}
                       {dayEvents.slice(0, 3).map((e) => (
                         <div
                           key={e.id}
