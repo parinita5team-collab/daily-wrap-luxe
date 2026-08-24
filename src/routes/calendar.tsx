@@ -14,6 +14,12 @@ import {
   type CalendarEvent,
   type EventStatus,
 } from "@/lib/calendar/data";
+import {
+  UAE_KIND_META,
+  isUaePublicHoliday,
+  uaeDaysFor,
+  upcomingUaeDays,
+} from "@/lib/calendar/uae";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/calendar")({
@@ -180,6 +186,8 @@ function CalendarPage() {
           {grid.map((d, i) => {
             const dk = d ? key(cursor.y, cursor.m, d) : "";
             const dayEvents = d ? shown.filter((e) => e.event_date === dk) : [];
+            const uae = d ? uaeDaysFor(dk) : [];
+            const isHoliday = d ? isUaePublicHoliday(dk) : false;
             const isToday =
               dk === key(today.getFullYear(), today.getMonth(), today.getDate()) && !!d;
             return (
@@ -190,6 +198,7 @@ function CalendarPage() {
                 className={cn(
                   "min-h-[104px] border-r border-b border-border p-2 text-left align-top transition-colors last:border-r-0",
                   d ? "hover:bg-surface-raised" : "bg-background/40",
+                  isHoliday ? "bg-success/[0.06]" : "",
                 )}
               >
                 {d ? (
@@ -203,6 +212,20 @@ function CalendarPage() {
                       {d}
                     </span>
                     <div className="mt-1.5 space-y-1">
+                      {uae.map((u) => (
+                        <div
+                          key={u.name}
+                          title={u.note ? `${u.name} — ${u.note}` : u.name}
+                          className="truncate rounded-md px-1.5 py-1 text-[11px] font-medium"
+                          style={{
+                            color: UAE_KIND_META[u.kind].color,
+                            background: `color-mix(in oklab, ${UAE_KIND_META[u.kind].color} 14%, transparent)`,
+                            borderLeft: `2px dashed ${UAE_KIND_META[u.kind].color}`,
+                          }}
+                        >
+                          {u.name}
+                        </div>
+                      ))}
                       {dayEvents.slice(0, 3).map((e) => (
                         <div
                           key={e.id}
@@ -232,6 +255,46 @@ function CalendarPage() {
             );
           })}
         </div>
+      </section>
+
+      <section className="mt-6 rounded-[14px] border border-border bg-card p-5 shadow-card">
+        <div className="flex flex-wrap items-center gap-3">
+          <h2 className="mono-label text-muted-foreground">UAE Calendar</h2>
+          <div className="flex flex-wrap gap-3">
+            {(Object.keys(UAE_KIND_META) as Array<keyof typeof UAE_KIND_META>).map((k) => (
+              <span key={k} className="mono-label flex items-center gap-1.5 text-muted-foreground">
+                <span
+                  className="size-2 rounded-full"
+                  style={{ background: UAE_KIND_META[k].color }}
+                />
+                {UAE_KIND_META[k].label}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {upcomingUaeDays(key(today.getFullYear(), today.getMonth(), today.getDate()), 4).map(
+            (u) => (
+              <div
+                key={`${u.date}-${u.name}`}
+                className="rounded-xl border border-border bg-surface-raised p-3.5"
+                style={{ borderLeft: `3px solid ${UAE_KIND_META[u.kind].color}` }}
+              >
+                <div className="mono-label text-muted-foreground">{u.date}</div>
+                <div className="mt-1.5 text-sm font-medium text-foreground">{u.name}</div>
+                <div className="mono-label mt-1" style={{ color: UAE_KIND_META[u.kind].color }}>
+                  {UAE_KIND_META[u.kind].label}
+                </div>
+                {u.note ? (
+                  <p className="mt-1.5 text-xs text-muted-foreground">{u.note}</p>
+                ) : null}
+              </div>
+            ),
+          )}
+        </div>
+        <p className="mt-4 text-xs text-muted-foreground">
+          Islamic dates follow official moon-sighting announcements and may shift by a day.
+        </p>
       </section>
 
       <section className="mt-6">
