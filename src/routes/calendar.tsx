@@ -186,6 +186,8 @@ function CalendarPage() {
           {grid.map((d, i) => {
             const dk = d ? key(cursor.y, cursor.m, d) : "";
             const dayEvents = d ? shown.filter((e) => e.event_date === dk) : [];
+            const uae = d ? uaeDaysFor(dk) : [];
+            const isHoliday = d ? isUaePublicHoliday(dk) : false;
             const isToday =
               dk === key(today.getFullYear(), today.getMonth(), today.getDate()) && !!d;
             return (
@@ -196,6 +198,7 @@ function CalendarPage() {
                 className={cn(
                   "min-h-[104px] border-r border-b border-border p-2 text-left align-top transition-colors last:border-r-0",
                   d ? "hover:bg-surface-raised" : "bg-background/40",
+                  isHoliday ? "bg-success/[0.06]" : "",
                 )}
               >
                 {d ? (
