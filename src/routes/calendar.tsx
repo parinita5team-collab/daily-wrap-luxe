@@ -14,6 +14,12 @@ import {
   type CalendarEvent,
   type EventStatus,
 } from "@/lib/calendar/data";
+import {
+  UAE_KIND_META,
+  isUaePublicHoliday,
+  uaeDaysFor,
+  upcomingUaeDays,
+} from "@/lib/calendar/uae";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/calendar")({
