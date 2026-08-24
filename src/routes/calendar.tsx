@@ -257,6 +257,46 @@ function CalendarPage() {
         </div>
       </section>
 
+      <section className="mt-6 rounded-[14px] border border-border bg-card p-5 shadow-card">
+        <div className="flex flex-wrap items-center gap-3">
+          <h2 className="mono-label text-muted-foreground">UAE Calendar</h2>
+          <div className="flex flex-wrap gap-3">
+            {(Object.keys(UAE_KIND_META) as Array<keyof typeof UAE_KIND_META>).map((k) => (
+              <span key={k} className="mono-label flex items-center gap-1.5 text-muted-foreground">
+                <span
+                  className="size-2 rounded-full"
+                  style={{ background: UAE_KIND_META[k].color }}
+                />
+                {UAE_KIND_META[k].label}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {upcomingUaeDays(key(today.getFullYear(), today.getMonth(), today.getDate()), 4).map(
+            (u) => (
+              <div
+                key={`${u.date}-${u.name}`}
+                className="rounded-xl border border-border bg-surface-raised p-3.5"
+                style={{ borderLeft: `3px solid ${UAE_KIND_META[u.kind].color}` }}
+              >
+                <div className="mono-label text-muted-foreground">{u.date}</div>
+                <div className="mt-1.5 text-sm font-medium text-foreground">{u.name}</div>
+                <div className="mono-label mt-1" style={{ color: UAE_KIND_META[u.kind].color }}>
+                  {UAE_KIND_META[u.kind].label}
+                </div>
+                {u.note ? (
+                  <p className="mt-1.5 text-xs text-muted-foreground">{u.note}</p>
+                ) : null}
+              </div>
+            ),
+          )}
+        </div>
+        <p className="mt-4 text-xs text-muted-foreground">
+          Islamic dates follow official moon-sighting announcements and may shift by a day.
+        </p>
+      </section>
+
       <section className="mt-6">
         <h2 className="mono-label text-muted-foreground">Upcoming</h2>
         <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
