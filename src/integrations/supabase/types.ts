@@ -515,24 +515,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      can_edit_company: { Args: { _company_id: string }; Returns: boolean }
-      can_edit_department: {
-        Args: { _company_id: string; _department: string }
-        Returns: boolean
-      }
-      can_view_department: {
-        Args: { _company_id: string; _department: string }
-        Returns: boolean
-      }
-      company_role_of: {
-        Args: { _company_id: string }
-        Returns: Database["public"]["Enums"]["company_role"]
-      }
-      is_app_admin: { Args: never; Returns: boolean }
-      is_company_admin: { Args: { _company_id: string }; Returns: boolean }
-      is_company_member: { Args: { _company_id: string }; Returns: boolean }
-      is_super_owner: { Args: never; Returns: boolean }
-      my_department: { Args: { _company_id: string }; Returns: string }
+      [_ in never]: never
     }
     Enums: {
       company_role: "admin" | "editor" | "viewer"
