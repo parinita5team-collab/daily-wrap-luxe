@@ -168,6 +168,33 @@ export type Database = {
           },
         ]
       }
+      email_reminder_log: {
+        Row: {
+          id: string
+          kind: string
+          recipient: string
+          ref_id: string
+          sent_at: string
+          slot: string
+        }
+        Insert: {
+          id?: string
+          kind: string
+          recipient: string
+          ref_id: string
+          sent_at?: string
+          slot?: string
+        }
+        Update: {
+          id?: string
+          kind?: string
+          recipient?: string
+          ref_id?: string
+          sent_at?: string
+          slot?: string
+        }
+        Relationships: []
+      }
       idea_votes: {
         Row: {
           created_at: string
@@ -504,6 +531,7 @@ export type Database = {
       is_app_admin: { Args: never; Returns: boolean }
       is_company_admin: { Args: { _company_id: string }; Returns: boolean }
       is_company_member: { Args: { _company_id: string }; Returns: boolean }
+      is_super_owner: { Args: never; Returns: boolean }
       my_department: { Args: { _company_id: string }; Returns: string }
     }
     Enums: {
