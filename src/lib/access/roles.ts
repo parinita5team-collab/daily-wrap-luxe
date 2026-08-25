@@ -142,6 +142,60 @@ export function useCompanyMembers(companyId: string | null) {
   };
 }
 
+/** Only these two mailboxes may add or remove super admins. */
+export const SUPER_OWNERS = ["pranita@5team.me", "pranita@supremeuae.me"];
+
+export interface SuperAdmin {
+  email: string;
+  created_at: string;
+}
+
+/** Super admin (app_admins) registry, editable only by the two owners. */
+export function useSuperAdmins(active: boolean) {
+  const [admins, setAdmins] = useState<SuperAdmin[]>([]);
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  const refresh = useCallback(async () => {
+    if (!active) return;
+    const [{ data }, { data: userData }] = await Promise.all([
+      supabase.from("app_admins").select("email, created_at").order("created_at"),
+      supabase.auth.getUser(),
+    ]);
+    setAdmins((data ?? []) as SuperAdmin[]);
+    setEmail((userData.user?.email ?? "").toLowerCase());
+    setLoading(false);
+  }, [active]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  const isOwner = SUPER_OWNERS.includes(email);
+
+  const addAdmin = useCallback(
+    async (newEmail: string) => {
+      const { error } = await supabase
+        .from("app_admins")
+        .insert({ email: newEmail.trim().toLowerCase() });
+      await refresh();
+      if (error) throw error;
+    },
+    [refresh],
+  );
+
+  const removeAdmin = useCallback(
+    async (target: string) => {
+      const { error } = await supabase.from("app_admins").delete().eq("email", target);
+      await refresh();
+      if (error) throw error;
+    },
+    [refresh],
+  );
+
+  return { admins, loading, isOwner, email, addAdmin, removeAdmin };
+}
+
 /** Edit rights for the currently selected company. */
 export function useCanEdit() {
   const { company } = useCompanies();
