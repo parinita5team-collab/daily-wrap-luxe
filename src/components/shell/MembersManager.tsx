@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ShieldCheck, Trash2, X } from "lucide-react";
+import { Crown, ShieldCheck, Trash2, X } from "lucide-react";
 import { useCompanies } from "@/lib/companies/context";
-import { ROLES, useCompanyMembers, type CompanyRole } from "@/lib/access/roles";
+import { ROLES, useCompanyMembers, useSuperAdmins, type CompanyRole } from "@/lib/access/roles";
 import { DEPARTMENTS } from "@/lib/departments/context";
 
 const field =
@@ -16,6 +16,20 @@ export function MembersManager({ open, onClose }: { open: boolean; onClose: () =
   const [role, setRoleDraft] = useState<CompanyRole>("viewer");
   const [dept, setDept] = useState<string>(DEPARTMENTS[0].id);
   const [error, setError] = useState("");
+  const superAdmins = useSuperAdmins(open);
+  const [superInvite, setSuperInvite] = useState("");
+  const [superError, setSuperError] = useState("");
+
+  const submitSuper = async () => {
+    if (!superInvite.trim()) return;
+    setSuperError("");
+    try {
+      await superAdmins.addAdmin(superInvite);
+      setSuperInvite("");
+    } catch {
+      setSuperError("Could not add that super admin — they may already be on the list.");
+    }
+  };
 
   const submit = async () => {
     if (!invite.trim()) return;
@@ -170,6 +184,51 @@ export function MembersManager({ open, onClose }: { open: boolean; onClose: () =
                 their own department by default.
               </p>
             )}
+
+            {superAdmins.isOwner ? (
+              <div className="mt-6 space-y-3 border-t border-border pt-5">
+                <div>
+                  <span className="mono-label text-primary">Owner controls</span>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Super admins can update every company calendar and tracker. Only you and the
+                    other owner mailbox can change this list.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  {superAdmins.admins.map((a) => (
+                    <div
+                      key={a.email}
+                      className="flex items-center gap-3 rounded-xl border border-border bg-surface-raised px-3 py-2"
+                    >
+                      <Crown className="size-4 text-primary" />
+                      <span className="min-w-0 flex-1 truncate text-sm text-foreground">
+                        {a.email}
+                      </span>
+                      <button
+                        onClick={() => void superAdmins.removeAdmin(a.email)}
+                        aria-label={`Remove super admin ${a.email}`}
+                        className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:text-danger"
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <input
+                  value={superInvite}
+                  onChange={(e) => setSuperInvite(e.target.value)}
+                  placeholder="new.superadmin@5team.me"
+                  className={field}
+                />
+                {superError ? <p className="text-xs text-danger">{superError}</p> : null}
+                <button
+                  onClick={() => void submitSuper()}
+                  className="w-full rounded-xl border border-primary/60 px-4 py-2.5 text-sm font-medium text-primary"
+                >
+                  Add super admin
+                </button>
+              </div>
+            ) : null}
           </motion.div>
         </motion.div>
       ) : null}
