@@ -31,30 +31,33 @@ export interface CalendarEvent {
   owner: string;
   requirements: string;
   notes: string;
+  company_id: string;
+  department: string;
 }
 
 const SELECT =
-  "id, title, event_type, status, event_date, start_time, end_time, venue, location, owner, requirements, notes";
+  "id, title, event_type, status, event_date, start_time, end_time, venue, location, owner, requirements, notes, company_id, department";
 
+/**
+ * The calendar is shared across the whole group of companies: every member
+ * sees every company's entries so clashes are visible. companyId/department
+ * are only used as defaults when creating a new entry.
+ */
 export function useCalendarEvents(companyId: string | null, department: string | null) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
   const refresh = useCallback(async () => {
-    if (!companyId || !department) return setEvents([]);
     const { data } = await supabase
       .from("calendar_events")
       .select(SELECT)
-      .eq("company_id", companyId)
-      .eq("department", department)
       .order("event_date", { ascending: true });
     if (data) setEvents(data as CalendarEvent[]);
-  }, [companyId, department]);
+  }, []);
 
   useEffect(() => {
     void refresh();
-    if (!companyId) return;
     const channel = supabase
-      .channel(`calendar-${companyId}`)
+      .channel("calendar-group")
       .on("postgres_changes", { event: "*", schema: "public", table: "calendar_events" }, () => {
         void refresh();
       })
@@ -62,29 +65,33 @@ export function useCalendarEvents(companyId: string | null, department: string |
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [companyId, refresh]);
+  }, [refresh]);
+
 
   const saveEvent = useCallback(
-    async (event: Omit<CalendarEvent, "id"> & { id?: string }) => {
-      if (!companyId || !department) return;
-      const { id, ...payload } = event;
+    async (event: Omit<CalendarEvent, "id" | "company_id" | "department"> & {
+      id?: string;
+      company_id?: string;
+      department?: string;
+    }) => {
+      const { id, company_id, department: dept, ...payload } = event;
       if (id) {
         await supabase.from("calendar_events").update(payload).eq("id", id);
       } else {
+        if (!companyId || !department) return;
         const { data: userData } = await supabase.auth.getUser();
-        await supabase
-          .from("calendar_events")
-          .insert({
-            ...payload,
-            company_id: companyId,
-            department,
-            created_by: userData.user?.id ?? null,
-          });
+        await supabase.from("calendar_events").insert({
+          ...payload,
+          company_id: company_id ?? companyId,
+          department: dept ?? department,
+          created_by: userData.user?.id ?? null,
+        });
       }
       await refresh();
     },
     [companyId, department, refresh],
   );
+
 
   const deleteEvent = useCallback(
     async (id: string) => {

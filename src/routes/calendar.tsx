@@ -51,7 +51,11 @@ function key(y: number, m: number, d: number) {
   return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
-type Draft = Omit<CalendarEvent, "id"> & { id?: string };
+type Draft = Omit<CalendarEvent, "id" | "company_id" | "department"> & {
+  id?: string;
+  company_id?: string;
+  department?: string;
+};
 
 function emptyDraft(date: string): Draft {
   return {
@@ -69,19 +73,32 @@ function emptyDraft(date: string): Draft {
   };
 }
 
+
 function CalendarPage() {
-  const { company } = useCompanies();
-  const { canEdit } = useCanEdit();
+  const { company, companies } = useCompanies();
+  const { canEdit, isAppAdmin } = useCanEdit();
   const { events, saveEvent, deleteEvent } = useCalendarEvents(company?.id ?? null, useDepartment().department);
   const today = new Date();
   const [cursor, setCursor] = useState({ y: today.getFullYear(), m: today.getMonth() });
   const [filter, setFilter] = useState<string>("all");
+  const [companyFilter, setCompanyFilter] = useState<string>("all");
   const [draft, setDraft] = useState<Draft | null>(null);
 
+  const companyName = (id: string) => companies.find((c) => c.id === id)?.name ?? "Group";
+  const companyAccent = (id: string) =>
+    companies.find((c) => c.id === id)?.accent ?? typeInfo("other").color;
+  const mayEdit = (e: CalendarEvent) => canEdit && (isAppAdmin || e.company_id === company?.id);
+
   const shown = useMemo(
-    () => (filter === "all" ? events : events.filter((e) => e.event_type === filter)),
-    [events, filter],
+    () =>
+      events.filter(
+        (e) =>
+          (filter === "all" || e.event_type === filter) &&
+          (companyFilter === "all" || e.company_id === companyFilter),
+      ),
+    [events, filter, companyFilter],
   );
+
 
   const grid = useMemo(() => {
     const first = new Date(cursor.y, cursor.m, 1);
@@ -112,13 +129,16 @@ function CalendarPage() {
         />
         <div className="relative flex flex-wrap items-start justify-between gap-4">
           <div>
-            <span className="mono-label text-primary">Production Schedule</span>
+            <span className="mono-label text-primary">Group Schedule</span>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-[40px]">
-              Calendar — {company?.name}
+              Group Calendar
             </h1>
             <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
-              Site visits, shoots, events, meetings and deadlines in one month-at-a-glance view.
+              One shared calendar for every company in the group — site visits, shoots, events,
+              meetings and deadlines, so clashes are easy to spot. New entries are filed under{" "}
+              {company?.name ?? "your company"}.
             </p>
+
           </div>
           {canEdit ? (
             <button
@@ -172,7 +192,26 @@ function CalendarPage() {
             />
           ))}
         </div>
+
+        <div className="flex w-full flex-wrap gap-1.5 border-t border-border pt-3">
+          <span className="mono-label mr-1 self-center text-muted-foreground">Companies</span>
+          <FilterChip
+            active={companyFilter === "all"}
+            onClick={() => setCompanyFilter("all")}
+            label="All companies"
+          />
+          {companies.map((c) => (
+            <FilterChip
+              key={c.id}
+              active={companyFilter === c.id}
+              onClick={() => setCompanyFilter(c.id)}
+              label={c.name}
+              color={c.accent}
+            />
+          ))}
+        </div>
       </div>
+
 
       <section className="mt-6 overflow-hidden rounded-[14px] border border-border bg-card shadow-card">
         <div className="grid grid-cols-7 border-b border-border">
@@ -229,9 +268,10 @@ function CalendarPage() {
                       {dayEvents.slice(0, 3).map((e) => (
                         <div
                           key={e.id}
+                          title={`${companyName(e.company_id)} · ${e.title}`}
                           onClick={(ev) => {
                             ev.stopPropagation();
-                            if (canEdit) setDraft(e);
+                            if (mayEdit(e)) setDraft(e);
                           }}
                           className="truncate rounded-md px-1.5 py-1 text-[11px] text-foreground"
                           style={{
@@ -239,10 +279,15 @@ function CalendarPage() {
                             borderLeft: `2px solid ${typeInfo(e.event_type).color}`,
                           }}
                         >
+                          <span
+                            className="mr-1 inline-block size-1.5 rounded-full align-middle"
+                            style={{ background: companyAccent(e.company_id) }}
+                          />
                           {e.start_time ? `${e.start_time} ` : ""}
                           {e.title}
                         </div>
                       ))}
+
                       {dayEvents.length > 3 ? (
                         <div className="mono-label text-muted-foreground">
                           +{dayEvents.length - 3} more
@@ -306,7 +351,7 @@ function CalendarPage() {
             upcoming.map((e) => (
               <button
                 key={e.id}
-                onClick={() => canEdit && setDraft(e)}
+                onClick={() => mayEdit(e) && setDraft(e)}
                 className="rounded-[14px] border border-border bg-card p-4 text-left shadow-card transition-colors hover:border-primary/30"
               >
                 <div className="flex items-center gap-2">
@@ -321,11 +366,18 @@ function CalendarPage() {
                   <span className="mono-label ml-auto text-primary">{e.status}</span>
                 </div>
                 <div className="mt-2 font-medium text-foreground">{e.title}</div>
+                <div
+                  className="mono-label mt-1.5"
+                  style={{ color: companyAccent(e.company_id) }}
+                >
+                  {companyName(e.company_id)}
+                </div>
                 {e.venue || e.location ? (
                   <div className="mt-1 text-sm text-muted-foreground">
                     {[e.venue, e.location].filter(Boolean).join(" · ")}
                   </div>
                 ) : null}
+
               </button>
             ))
           )}
