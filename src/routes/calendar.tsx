@@ -351,7 +351,7 @@ function CalendarPage() {
             upcoming.map((e) => (
               <button
                 key={e.id}
-                onClick={() => canEdit && setDraft(e)}
+                onClick={() => mayEdit(e) && setDraft(e)}
                 className="rounded-[14px] border border-border bg-card p-4 text-left shadow-card transition-colors hover:border-primary/30"
               >
                 <div className="flex items-center gap-2">
@@ -366,11 +366,18 @@ function CalendarPage() {
                   <span className="mono-label ml-auto text-primary">{e.status}</span>
                 </div>
                 <div className="mt-2 font-medium text-foreground">{e.title}</div>
+                <div
+                  className="mono-label mt-1.5"
+                  style={{ color: companyAccent(e.company_id) }}
+                >
+                  {companyName(e.company_id)}
+                </div>
                 {e.venue || e.location ? (
                   <div className="mt-1 text-sm text-muted-foreground">
                     {[e.venue, e.location].filter(Boolean).join(" · ")}
                   </div>
                 ) : null}
+
               </button>
             ))
           )}
