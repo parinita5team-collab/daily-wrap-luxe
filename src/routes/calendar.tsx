@@ -75,18 +75,30 @@ function emptyDraft(date: string): Draft {
 
 
 function CalendarPage() {
-  const { company } = useCompanies();
-  const { canEdit } = useCanEdit();
+  const { company, companies } = useCompanies();
+  const { canEdit, isAppAdmin } = useCanEdit();
   const { events, saveEvent, deleteEvent } = useCalendarEvents(company?.id ?? null, useDepartment().department);
   const today = new Date();
   const [cursor, setCursor] = useState({ y: today.getFullYear(), m: today.getMonth() });
   const [filter, setFilter] = useState<string>("all");
+  const [companyFilter, setCompanyFilter] = useState<string>("all");
   const [draft, setDraft] = useState<Draft | null>(null);
 
+  const companyName = (id: string) => companies.find((c) => c.id === id)?.name ?? "Group";
+  const companyAccent = (id: string) =>
+    companies.find((c) => c.id === id)?.accent ?? typeInfo("other").color;
+  const mayEdit = (e: CalendarEvent) => canEdit && (isAppAdmin || e.company_id === company?.id);
+
   const shown = useMemo(
-    () => (filter === "all" ? events : events.filter((e) => e.event_type === filter)),
-    [events, filter],
+    () =>
+      events.filter(
+        (e) =>
+          (filter === "all" || e.event_type === filter) &&
+          (companyFilter === "all" || e.company_id === companyFilter),
+      ),
+    [events, filter, companyFilter],
   );
+
 
   const grid = useMemo(() => {
     const first = new Date(cursor.y, cursor.m, 1);
