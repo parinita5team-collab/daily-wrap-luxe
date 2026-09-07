@@ -129,13 +129,16 @@ function CalendarPage() {
         />
         <div className="relative flex flex-wrap items-start justify-between gap-4">
           <div>
-            <span className="mono-label text-primary">Production Schedule</span>
+            <span className="mono-label text-primary">Group Schedule</span>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-[40px]">
-              Calendar — {company?.name}
+              Group Calendar
             </h1>
             <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
-              Site visits, shoots, events, meetings and deadlines in one month-at-a-glance view.
+              One shared calendar for every company in the group — site visits, shoots, events,
+              meetings and deadlines, so clashes are easy to spot. New entries are filed under{" "}
+              {company?.name ?? "your company"}.
             </p>
+
           </div>
           {canEdit ? (
             <button
