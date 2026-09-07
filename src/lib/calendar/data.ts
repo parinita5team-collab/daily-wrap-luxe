@@ -69,26 +69,29 @@ export function useCalendarEvents(companyId: string | null, department: string |
 
 
   const saveEvent = useCallback(
-    async (event: Omit<CalendarEvent, "id"> & { id?: string }) => {
-      if (!companyId || !department) return;
-      const { id, ...payload } = event;
+    async (event: Omit<CalendarEvent, "id" | "company_id" | "department"> & {
+      id?: string;
+      company_id?: string;
+      department?: string;
+    }) => {
+      const { id, company_id, department: dept, ...payload } = event;
       if (id) {
         await supabase.from("calendar_events").update(payload).eq("id", id);
       } else {
+        if (!companyId || !department) return;
         const { data: userData } = await supabase.auth.getUser();
-        await supabase
-          .from("calendar_events")
-          .insert({
-            ...payload,
-            company_id: companyId,
-            department,
-            created_by: userData.user?.id ?? null,
-          });
+        await supabase.from("calendar_events").insert({
+          ...payload,
+          company_id: company_id ?? companyId,
+          department: dept ?? department,
+          created_by: userData.user?.id ?? null,
+        });
       }
       await refresh();
     },
     [companyId, department, refresh],
   );
+
 
   const deleteEvent = useCallback(
     async (id: string) => {
