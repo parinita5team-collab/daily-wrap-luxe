@@ -192,7 +192,26 @@ function CalendarPage() {
             />
           ))}
         </div>
+
+        <div className="flex w-full flex-wrap gap-1.5 border-t border-border pt-3">
+          <span className="mono-label mr-1 self-center text-muted-foreground">Companies</span>
+          <FilterChip
+            active={companyFilter === "all"}
+            onClick={() => setCompanyFilter("all")}
+            label="All companies"
+          />
+          {companies.map((c) => (
+            <FilterChip
+              key={c.id}
+              active={companyFilter === c.id}
+              onClick={() => setCompanyFilter(c.id)}
+              label={c.name}
+              color={c.accent}
+            />
+          ))}
+        </div>
       </div>
+
 
       <section className="mt-6 overflow-hidden rounded-[14px] border border-border bg-card shadow-card">
         <div className="grid grid-cols-7 border-b border-border">
