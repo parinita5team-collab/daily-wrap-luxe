@@ -268,9 +268,10 @@ function CalendarPage() {
                       {dayEvents.slice(0, 3).map((e) => (
                         <div
                           key={e.id}
+                          title={`${companyName(e.company_id)} · ${e.title}`}
                           onClick={(ev) => {
                             ev.stopPropagation();
-                            if (canEdit) setDraft(e);
+                            if (mayEdit(e)) setDraft(e);
                           }}
                           className="truncate rounded-md px-1.5 py-1 text-[11px] text-foreground"
                           style={{
@@ -278,10 +279,15 @@ function CalendarPage() {
                             borderLeft: `2px solid ${typeInfo(e.event_type).color}`,
                           }}
                         >
+                          <span
+                            className="mr-1 inline-block size-1.5 rounded-full align-middle"
+                            style={{ background: companyAccent(e.company_id) }}
+                          />
                           {e.start_time ? `${e.start_time} ` : ""}
                           {e.title}
                         </div>
                       ))}
+
                       {dayEvents.length > 3 ? (
                         <div className="mono-label text-muted-foreground">
                           +{dayEvents.length - 3} more
