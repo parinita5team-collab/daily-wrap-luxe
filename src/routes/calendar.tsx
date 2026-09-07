@@ -51,7 +51,11 @@ function key(y: number, m: number, d: number) {
   return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
-type Draft = Omit<CalendarEvent, "id"> & { id?: string };
+type Draft = Omit<CalendarEvent, "id" | "company_id" | "department"> & {
+  id?: string;
+  company_id?: string;
+  department?: string;
+};
 
 function emptyDraft(date: string): Draft {
   return {
@@ -68,6 +72,7 @@ function emptyDraft(date: string): Draft {
     notes: "",
   };
 }
+
 
 function CalendarPage() {
   const { company } = useCompanies();
