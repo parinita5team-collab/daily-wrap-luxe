@@ -31,30 +31,33 @@ export interface CalendarEvent {
   owner: string;
   requirements: string;
   notes: string;
+  company_id: string;
+  department: string;
 }
 
 const SELECT =
-  "id, title, event_type, status, event_date, start_time, end_time, venue, location, owner, requirements, notes";
+  "id, title, event_type, status, event_date, start_time, end_time, venue, location, owner, requirements, notes, company_id, department";
 
+/**
+ * The calendar is shared across the whole group of companies: every member
+ * sees every company's entries so clashes are visible. companyId/department
+ * are only used as defaults when creating a new entry.
+ */
 export function useCalendarEvents(companyId: string | null, department: string | null) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
   const refresh = useCallback(async () => {
-    if (!companyId || !department) return setEvents([]);
     const { data } = await supabase
       .from("calendar_events")
       .select(SELECT)
-      .eq("company_id", companyId)
-      .eq("department", department)
       .order("event_date", { ascending: true });
     if (data) setEvents(data as CalendarEvent[]);
-  }, [companyId, department]);
+  }, []);
 
   useEffect(() => {
     void refresh();
-    if (!companyId) return;
     const channel = supabase
-      .channel(`calendar-${companyId}`)
+      .channel("calendar-group")
       .on("postgres_changes", { event: "*", schema: "public", table: "calendar_events" }, () => {
         void refresh();
       })
@@ -62,7 +65,8 @@ export function useCalendarEvents(companyId: string | null, department: string |
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [companyId, refresh]);
+  }, [refresh]);
+
 
   const saveEvent = useCallback(
     async (event: Omit<CalendarEvent, "id"> & { id?: string }) => {
