@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { X } from "lucide-react";
+import { FileText, Image as ImageIcon, Paperclip, Trash2, Upload, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   STATUSES,
@@ -9,6 +9,7 @@ import {
   type Task,
   type TaskStatus,
 } from "@/lib/daily-wrap/types";
+import { formatSize, useTaskAttachments } from "@/lib/daily-wrap/attachments";
 
 export interface TaskDraft extends Omit<Task, "id"> {
   id?: string;
@@ -23,14 +24,21 @@ export function TaskModal({
   onClose,
   onSave,
   onDelete,
+  companyId = null,
+  department = null,
 }: {
   open: boolean;
   draft: TaskDraft | null;
   onClose: () => void;
   onSave: (task: Task) => void;
   onDelete: (id: string) => void;
+  companyId?: string | null;
+  department?: string | null;
 }) {
   const [form, setForm] = useState<TaskDraft | null>(draft);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const attachments = useTaskAttachments(form?.id ?? null, companyId, department);
+
 
   useEffect(() => setForm(draft), [draft]);
 
