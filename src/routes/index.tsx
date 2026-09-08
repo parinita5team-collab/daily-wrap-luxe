@@ -10,7 +10,7 @@ import { useDepartment } from "@/lib/departments/context";
 import { AppShell } from "@/components/shell/AppShell";
 import { useCompanies } from "@/lib/companies/context";
 import { useCanEdit } from "@/lib/access/roles";
-import { TEAM_MEMBERS, type Task } from "@/lib/daily-wrap/types";
+import { membersFor, type Task } from "@/lib/daily-wrap/types";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -69,6 +69,11 @@ function Index() {
 
   const dayTasks = useMemo(() => tasks.filter((t) => t.date === dateKey), [tasks, dateKey]);
 
+  const members = useMemo(
+    () => membersFor(department, tasks.map((t) => t.teamMember)),
+    [department, tasks],
+  );
+
   const stats = useMemo(
     () => ({
       total: dayTasks.length,
@@ -91,7 +96,7 @@ function Index() {
 
   const copyReport = async () => {
     const lines = [`Daily Wrap — ${longLabel(dateKey)}`, ""];
-    for (const member of TEAM_MEMBERS) {
+    for (const member of members) {
       lines.push(member);
       const rows = dayTasks.filter((t) => t.teamMember === member);
       if (rows.length === 0) lines.push("No updates logged.");
@@ -117,7 +122,7 @@ function Index() {
     <main className="bg-background">
       <div className="mx-auto w-full max-w-[1180px] px-5 pt-7 pb-[60px]">
         <Header
-          onLogTask={canEdit ? () => setDraft(newDraft(TEAM_MEMBERS[0])) : undefined}
+          onLogTask={canEdit ? () => setDraft(newDraft(members[0] ?? "")) : undefined}
           onCopy={copyReport}
           copied={copied}
         />
@@ -139,7 +144,7 @@ function Index() {
         </section>
 
         <section className="mt-6 grid grid-cols-1 items-start gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {TEAM_MEMBERS.map((member) => (
+          {members.map((member) => (
             <TeamColumn
               key={member}
               member={member}
@@ -148,6 +153,11 @@ function Index() {
               onSelect={canEdit ? (task) => setDraft(task) : undefined}
             />
           ))}
+          {members.length === 0 ? (
+            <div className="rounded-[14px] border border-dashed border-border px-5 py-12 text-center text-sm text-muted-foreground md:col-span-2 lg:col-span-3">
+              No staff names added for this department yet.
+            </div>
+          ) : null}
         </section>
       </div>
 
@@ -155,6 +165,7 @@ function Index() {
         open={draft !== null}
         draft={draft}
         companyId={company?.id ?? null}
+        members={members}
         department={department}
         onClose={() => setDraft(null)}
 

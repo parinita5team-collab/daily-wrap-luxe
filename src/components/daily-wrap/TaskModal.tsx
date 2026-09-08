@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import {
   STATUSES,
   STATUS_TOKENS,
-  TEAM_MEMBERS,
   type Task,
   type TaskStatus,
 } from "@/lib/daily-wrap/types";
@@ -26,6 +25,7 @@ export function TaskModal({
   onDelete,
   companyId = null,
   department = null,
+  members,
 }: {
   open: boolean;
   draft: TaskDraft | null;
@@ -34,6 +34,7 @@ export function TaskModal({
   onDelete: (id: string) => void;
   companyId?: string | null;
   department?: string | null;
+  members: string[];
 }) {
   const [form, setForm] = useState<TaskDraft | null>(draft);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -98,7 +99,7 @@ export function TaskModal({
               <div>
                 <label className="mono-label text-muted-foreground">Team Member</label>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {TEAM_MEMBERS.map((m) => (
+                  {members.map((m) => (
                     <button
                       key={m}
                       type="button"

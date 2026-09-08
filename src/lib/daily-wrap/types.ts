@@ -47,3 +47,23 @@ export const STATUS_TOKENS: Record<
     text: "text-danger",
   },
 };
+/**
+ * Department-wise staff rosters. Marketing is confirmed; the other
+ * departments are empty until names are supplied, in which case the
+ * columns are built from whoever already has entries logged.
+ */
+export const DEPARTMENT_MEMBERS: Record<string, string[]> = {
+  marketing: ["Pranita", "Osama", "Njung"],
+  creative: [],
+  accounts: [],
+  production: [],
+  procurement: [],
+  hr_admin: [],
+};
+
+/** Names to show as columns for a department, plus any logged extras. */
+export function membersFor(department: string | null, logged: string[] = []): string[] {
+  const roster = department ? (DEPARTMENT_MEMBERS[department] ?? []) : [];
+  const extras = logged.filter((n) => n && !roster.includes(n));
+  return [...roster, ...Array.from(new Set(extras))];
+}
