@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { X } from "lucide-react";
+import { FileText, Image as ImageIcon, Paperclip, Trash2, Upload, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   STATUSES,
@@ -9,6 +9,7 @@ import {
   type Task,
   type TaskStatus,
 } from "@/lib/daily-wrap/types";
+import { formatSize, useTaskAttachments } from "@/lib/daily-wrap/attachments";
 
 export interface TaskDraft extends Omit<Task, "id"> {
   id?: string;
@@ -23,14 +24,21 @@ export function TaskModal({
   onClose,
   onSave,
   onDelete,
+  companyId = null,
+  department = null,
 }: {
   open: boolean;
   draft: TaskDraft | null;
   onClose: () => void;
   onSave: (task: Task) => void;
   onDelete: (id: string) => void;
+  companyId?: string | null;
+  department?: string | null;
 }) {
   const [form, setForm] = useState<TaskDraft | null>(draft);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const attachments = useTaskAttachments(form?.id ?? null, companyId, department);
+
 
   useEffect(() => setForm(draft), [draft]);
 
@@ -178,6 +186,86 @@ export function TaskModal({
                   ))}
                 </div>
               </div>
+
+              <div className="rounded-xl border border-border bg-surface-raised/50 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <label className="mono-label flex items-center gap-1.5 text-muted-foreground">
+                    <Paperclip className="size-3.5" /> Attachments
+                  </label>
+                  {form.id ? (
+                    <button
+                      type="button"
+                      onClick={() => fileInput.current?.click()}
+                      disabled={attachments.busy}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors duration-200 hover:border-primary/60 disabled:opacity-60"
+                    >
+                      <Upload className="size-3.5" />
+                      {attachments.busy ? "Uploading…" : "Add file"}
+                    </button>
+                  ) : null}
+                </div>
+
+                <input
+                  ref={fileInput}
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files?.length) void attachments.upload(e.target.files);
+                    e.target.value = "";
+                  }}
+                />
+
+                {!form.id ? (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Save the entry first, then reopen it to attach pictures, files or documents.
+                  </p>
+                ) : attachments.items.length === 0 ? (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    No files yet — add a picture, document or any file for review.
+                  </p>
+                ) : (
+                  <ul className="mt-3 space-y-2">
+                    {attachments.items.map((a) => (
+                      <li
+                        key={a.id}
+                        className="flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2"
+                      >
+                        {a.mimeType.startsWith("image/") ? (
+                          <ImageIcon className="size-4 shrink-0 text-primary" />
+                        ) : (
+                          <FileText className="size-4 shrink-0 text-primary" />
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => void attachments.open(a)}
+                          className="min-w-0 flex-1 truncate text-left text-sm text-foreground hover:text-primary"
+                          title={a.fileName}
+                        >
+                          {a.fileName}
+                        </button>
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                          {formatSize(a.sizeBytes)}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => void attachments.remove(a)}
+                          aria-label={`Remove ${a.fileName}`}
+                          className="grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors duration-200 hover:bg-danger/10 hover:text-danger"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {attachments.error ? (
+                  <p className="mt-2 text-xs text-danger">{attachments.error}</p>
+                ) : null}
+              </div>
+
+
 
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-border pt-5">
                 <div>

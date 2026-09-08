@@ -454,6 +454,63 @@ export type Database = {
           },
         ]
       }
+      task_attachments: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          department: string
+          file_name: string
+          id: string
+          mime_type: string
+          size_bytes: number
+          storage_path: string
+          task_id: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          department?: string
+          file_name: string
+          id?: string
+          mime_type?: string
+          size_bytes?: number
+          storage_path: string
+          task_id: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          department?: string
+          file_name?: string
+          id?: string
+          mime_type?: string
+          size_bytes?: number
+          storage_path?: string
+          task_id?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_attachments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_attachments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           company: string

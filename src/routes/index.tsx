@@ -154,7 +154,10 @@ function Index() {
       <TaskModal
         open={draft !== null}
         draft={draft}
+        companyId={company?.id ?? null}
+        department={department}
         onClose={() => setDraft(null)}
+
         onSave={(task: Task) => {
           saveTask(task);
           setDraft(null);
